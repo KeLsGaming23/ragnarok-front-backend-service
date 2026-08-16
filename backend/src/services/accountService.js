@@ -115,6 +115,9 @@ export class AccountService {
       throw err;
     }
 
+    return { success: true };
+  }
+
   /**
    * Get character inventory and cart items
    */
