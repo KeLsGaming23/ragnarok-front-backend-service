@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield Background -->
+  <polygon points="50,5 90,20 85,75 50,95 15,75 10,20" fill="url(#shieldGrad)" stroke="url(#goldGrad)" stroke-width="4"/>
+  <!-- Crossed Swords / Wing Rune -->
+  <path d="M50 20 L58 40 L78 45 L62 58 L68 80 L50 68 L32 80 L38 58 L22 45 L42 40 Z" fill="url(#goldGrad)"/>
+  <!-- Central Crystal -->
+  <polygon points="50,38 58,50 50,62 42,50" fill="#38bdf8"/>
+</svg>

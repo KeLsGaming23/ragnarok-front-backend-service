@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a0e17;
+    color: #f3f4f6;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0d1320;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #24324a;
+    border-radius: 4px;
+    border: 1px solid #161f30;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d97706;
+  }
+}
+
+@layer components {
+  /* Fantasy Buttons */
+  .btn-gold {
+    @apply relative inline-flex items-center justify-center font-semibold px-6 py-3 rounded-lg text-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 shadow-gold-glow transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center font-semibold px-6 py-3 rounded-lg text-ro-text-primary bg-ro-card hover:bg-ro-card-hover border border-ro-border hover:border-ro-gold/50 transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-crystal {
+    @apply relative inline-flex items-center justify-center font-semibold px-6 py-3 rounded-lg text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-crystal-glow transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  /* Fantasy Cards */
+  .ro-card {
+    @apply bg-ro-card/80 backdrop-blur-md border border-ro-border rounded-xl shadow-card-inner transition-all duration-300;
+  }
+
+  .ro-card-hover {
+    @apply hover:border-ro-gold/40 hover:bg-ro-card-hover/90 hover:shadow-gold-glow;
+  }
+
+  .gold-divider {
+    @apply h-[1px] w-full bg-gradient-to-r from-transparent via-amber-500/40 to-transparent my-6;
+  }
+
+  /* Form Inputs */
+  .ro-input {
+    @apply w-full bg-ro-bg/90 border border-ro-border rounded-lg px-4 py-3 text-ro-text-primary placeholder-ro-text-muted focus:outline-none focus:border-ro-gold focus:ring-1 focus:ring-ro-gold/50 transition-all duration-200;
+  }
+}
+
+/* Subtle background animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}

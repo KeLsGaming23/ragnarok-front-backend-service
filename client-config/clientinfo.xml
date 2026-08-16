@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<clientinfo>
+  <servicetype>korea</servicetype>
+  <servertype>primary</servertype>
+  <connection>
+    <display>KelsGaming RO</display>
+    <desc>KelsGaming RO - Your Adventure Begins Here</desc>
+    <address>54.253.142.107</address>
+    <port>6900</port>
+    <version>55</version>
+    <langtype>1</langtype>
+    <registrationweb>http://54.253.142.107/register</registrationweb>
+    <yellow>
+      <admin>1</admin>
+    </yellow>
+    <loading>
+      <image>loading00.jpg</image>
+      <image>loading01.jpg</image>
+      <image>loading02.jpg</image>
+    </loading>
+  </connection>
+</clientinfo>
