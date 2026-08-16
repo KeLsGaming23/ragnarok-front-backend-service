@@ -8,20 +8,20 @@ export default function InstallationSteps() {
   const steps = [
     {
       num: '01',
-      title: 'Download Client ZIP',
-      desc: 'Grab the Full Client package (~1.85 GB) from the direct link or cloud mirrors above.',
+      title: 'Download from Google Drive',
+      desc: 'Grab Ragnarok-Configured-Client.zip (~1.85 GB) from our high-speed Google Drive link.',
       icon: <Download className="w-6 h-6 text-amber-400" />
     },
     {
       num: '02',
-      title: 'Extract Files',
-      desc: 'Right-click the ZIP archive and extract into any folder (e.g., C:\\Games\\KelsGamingRO).',
+      title: 'Extract Folder',
+      desc: 'Extract the ZIP file. You will get the folder "Ragnarok-Configured-Client" with all pre-configured game files.',
       icon: <FolderArchive className="w-6 h-6 text-sky-400" />
     },
     {
       num: '03',
-      title: 'Run KelsGamingRO.exe',
-      desc: 'Launch the game executable. Right click and choose "Run as Administrator" for best stability.',
+      title: 'Run Game Executable',
+      desc: 'Open the folder and run "2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe". (Right-click to create a desktop shortcut!)',
       icon: <PlayCircle className="w-6 h-6 text-emerald-400" />
     },
     {
@@ -39,7 +39,7 @@ export default function InstallationSteps() {
           How to Play in 4 Easy Steps
         </h2>
         <p className="text-xs sm:text-sm text-ro-text-secondary">
-          No complicated XML editing, GRF repacking, or IP patching needed.
+          Pre-configured client — extract, launch executable, and enter the world of KelsGaming RO.
         </p>
       </div>
 

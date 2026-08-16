@@ -1,5 +1,5 @@
 /**
- * Game Client Download Cards & Mirrors Component
+ * Game Client Download Cards & Google Drive Host Component
  */
 import React from 'react';
 import { 
@@ -10,14 +10,17 @@ import {
   Copy, 
   Check, 
   Sparkles, 
-  FileArchive 
+  FileArchive, 
+  FolderCheck, 
+  RefreshCw 
 } from 'lucide-react';
 
 export default function DownloadHero({ downloadData }) {
   const [copied, setCopied] = React.useState(false);
 
+  const googleDriveLink = 'https://drive.google.com/file/d/1MaeJbH7gIZErQ9hTETIQf9PyOwso4tLQ/view?usp=sharing';
   const fullClient = downloadData?.fullClient;
-  const litePatch = downloadData?.litePatch;
+  const downloadUrl = fullClient?.mirrors?.[0]?.url || googleDriveLink;
 
   const handleCopySha = (sha) => {
     if (!sha) return;
@@ -34,14 +37,14 @@ export default function DownloadHero({ downloadData }) {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-ro-card border border-ro-border mb-4">
           <Sparkles className="w-4 h-4 text-ro-gold" />
           <span className="text-xs font-semibold uppercase tracking-wider text-ro-gold">
-            Pre-Configured Client v1.2.0
+            Google Drive Hosted Client &bull; v1.2.0
           </span>
         </div>
         <h1 className="font-cinzel text-4xl sm:text-5xl font-extrabold text-white mb-4">
           Download KelsGaming RO Client
         </h1>
         <p className="text-sm sm:text-base text-ro-text-secondary leading-relaxed">
-          Pre-configured for our AWS EC2 game server (<code className="text-amber-300 font-mono">54.253.142.107</code>). No manual XML tweaking or IP changes required. Just download, extract, and start playing!
+          Pre-configured for our AWS EC2 game server (<code className="text-amber-300 font-mono">54.253.142.107</code>). Hosted on high-speed Google Drive for fast, unlimited downloads.
         </p>
       </div>
 
@@ -52,7 +55,7 @@ export default function DownloadHero({ downloadData }) {
         <div className="lg:col-span-2 ro-card p-6 sm:p-8 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-b from-ro-surface to-ro-card shadow-2xl relative overflow-hidden flex flex-col justify-between">
           
           <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-black font-extrabold text-xs px-4 py-1.5 rounded-bl-xl shadow-md uppercase tracking-wider">
-            Recommended for All Players
+            Official Google Drive Host
           </div>
 
           <div>
@@ -62,48 +65,45 @@ export default function DownloadHero({ downloadData }) {
               </div>
               <div>
                 <h2 className="font-cinzel text-2xl font-bold text-white">
-                  Full Standalone Game Client
+                  Ragnarok-Configured-Client.zip
                 </h2>
                 <p className="text-xs text-ro-text-secondary">
-                  Complete package &bull; Size: <strong className="text-white">{fullClient?.fileSize || '1.85 GB'}</strong> &bull; Version 1.2.0
+                  Complete Standalone Package &bull; Size: <strong className="text-white">1.85 GB</strong> &bull; Google Drive
                 </p>
               </div>
             </div>
 
-            <p className="text-sm text-ro-text-secondary mb-6 leading-relaxed">
-              Includes all Ragnarok sound effects, full BGM library, custom sprites, Gepard 3.0 protection, and pre-configured <code className="text-amber-300 font-mono">KelsGamingRO.exe</code> ready to connect.
+            <p className="text-sm text-ro-text-secondary mb-5 leading-relaxed">
+              Contains the complete game client with all sound assets, BGM, and pre-patched executable:
+              <br />
+              <code className="text-amber-300 font-mono text-xs block mt-1.5 p-2 rounded bg-ro-bg border border-ro-border truncate">
+                Ragnarok-Configured-Client\2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe
+              </code>
             </p>
 
             {/* Direct High-Speed Download CTA */}
             <div className="mb-6">
               <a
-                href={fullClient?.mirrors?.[0]?.url || '#'}
+                href={downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn-gold w-full !py-4 text-base font-extrabold flex items-center justify-center gap-2 shadow-lg"
               >
                 <Download className="w-5 h-5" />
-                <span>Download Full Client ({fullClient?.fileSize || '1.85 GB'})</span>
+                <span>Download via Google Drive (1.85 GB)</span>
+                <ExternalLink className="w-4 h-4 ml-1" />
               </a>
             </div>
 
-            {/* Alternative Cloud Mirrors */}
-            <div className="space-y-2 mb-6">
-              <span className="text-xs font-semibold text-ro-text-muted uppercase tracking-wider block">
-                Alternative Cloud Mirrors:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {fullClient?.mirrors?.slice(1).map((mirror, idx) => (
-                  <a
-                    key={idx}
-                    href={mirror.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-ro-bg/80 hover:bg-ro-card-hover border border-ro-border hover:border-ro-gold/40 text-xs font-medium text-ro-text-primary transition-colors"
-                  >
-                    <span>{mirror.name}</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-ro-gold" />
-                  </a>
-                ))}
+            {/* IP Maintenance Note */}
+            <div className="p-4 rounded-xl bg-ro-bg/80 border border-ro-border/80 mb-6 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                <RefreshCw className="w-4 h-4 text-ro-gold shrink-0" />
+                <span>Cost-Efficient Dynamic IP Notice — No Redownload Needed!</span>
               </div>
+              <p className="text-xs text-ro-text-secondary leading-relaxed">
+                If the server IP updates in the future, you <strong className="text-white">DO NOT</strong> need to redownload the client. Simply open <code className="text-amber-300 font-mono">Ragnarok-Configured-Client\data\clientinfo.xml</code> in Notepad, change <code className="text-sky-300 font-mono">&lt;address&gt;54.253.142.107&lt;/address&gt;</code> to the new server IP, and save!
+              </p>
             </div>
           </div>
 
@@ -112,56 +112,75 @@ export default function DownloadHero({ downloadData }) {
             <div className="flex items-center gap-2 text-ro-text-muted">
               <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span className="font-mono truncate max-w-[280px] sm:max-w-md">
-                SHA256: {fullClient?.sha256 || 'e3b0c44298fc1c149afbf4c8996fb924...'}
+                Package: Ragnarok-Configured-Client.zip
               </span>
             </div>
-            <button
-              onClick={() => handleCopySha(fullClient?.sha256)}
+            <a
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1 text-ro-gold hover:text-amber-300 font-medium shrink-0"
-              title="Copy Checksum"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Copied' : 'Copy Hash'}</span>
-            </button>
+              <span>Open Drive Folder</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
 
         </div>
 
-        {/* Lite Patch Card */}
+        {/* Quick Launch & Shortcut Guide Card */}
         <div className="ro-card p-6 sm:p-8 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl flex flex-col justify-between">
           <div>
             <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-500/40 w-fit mb-4">
-              <HardDrive className="w-6 h-6 text-ro-crystal" />
+              <FolderCheck className="w-6 h-6 text-ro-crystal" />
             </div>
 
-            <h3 className="font-cinzel text-xl font-bold text-white mb-1">
-              Lite Patch Installer
+            <h3 className="font-cinzel text-xl font-bold text-white mb-2">
+              Launcher Guide
             </h3>
-            <p className="text-xs text-ro-text-secondary mb-4">
-              For players with existing kRO &bull; Size: <strong className="text-white">{litePatch?.fileSize || '45.2 MB'}</strong>
-            </p>
-
-            <p className="text-xs sm:text-sm text-ro-text-secondary leading-relaxed mb-6">
-              Contains only KelsGaming RO data GRFs, custom palettes, and launcher. Requires an existing clean Ragnarok client data folder.
+            <p className="text-xs text-ro-text-secondary mb-4 leading-relaxed">
+              After extracting the ZIP, run the patched executable:
             </p>
 
             <div className="space-y-3 mb-6">
-              {litePatch?.mirrors?.map((mirror, idx) => (
-                <a
-                  key={idx}
-                  href={mirror.url}
-                  className="btn-secondary w-full !py-3 text-xs font-bold flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4 text-ro-gold" />
-                  <span>{mirror.name}</span>
-                </a>
-              ))}
+              <div className="p-3 rounded-lg bg-ro-bg border border-ro-border">
+                <span className="text-[11px] font-bold text-ro-gold uppercase tracking-wider block mb-1">
+                  1. Target Folder
+                </span>
+                <code className="text-xs text-white font-mono block truncate">
+                  Ragnarok-Configured-Client/
+                </code>
+              </div>
+
+              <div className="p-3 rounded-lg bg-ro-bg border border-ro-border">
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+                  2. Run Executable
+                </span>
+                <code className="text-xs text-emerald-300 font-mono block break-all">
+                  2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe
+                </code>
+              </div>
+
+              <div className="p-3 rounded-lg bg-ro-bg border border-ro-border">
+                <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider block mb-1">
+                  3. Desktop Shortcut Tip
+                </span>
+                <p className="text-xs text-ro-text-secondary">
+                  Right-click the .exe &rarr; <em>Send to &rarr; Desktop (create shortcut)</em> for fast 1-click launching!
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/80 leading-relaxed">
-            Note: If you encounter missing sound or sprite errors with the Lite Patch, please download the Full Standalone Client.
-          </div>
+          <a
+            href={downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-crystal w-full !py-3 text-xs font-bold flex items-center justify-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>Download on Google Drive</span>
+          </a>
         </div>
 
       </div>

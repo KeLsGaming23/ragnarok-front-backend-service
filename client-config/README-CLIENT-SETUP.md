@@ -1,54 +1,37 @@
 # KelsGaming RO - Game Client Packaging & Setup Guide
 
-This directory contains the exact pre-configured files required to package the **KelsGaming RO** game client for distribution so that players have a 1-click launch experience without needing to edit any configuration or XML files.
+This directory contains the exact pre-configured files required for the **KelsGaming RO** game client so that players have an easy 1-click launch experience.
 
 ---
 
-## Intended Player Experience
+## 📥 Official Client Download (Google Drive)
 
-1. Player visits `https://your-domain.com/download`
-2. Downloads `KelsGamingRO_Full_Client_v1.2.0.zip`
-3. Extracts folder to `C:\Games\KelsGamingRO`
-4. Runs `KelsGamingRO.exe`
-5. Enters their registered account credentials and plays!
-
----
-
-## Pre-Configured Files
-
-### 1. `clientinfo.xml`
-Pre-configured with:
-- **Server Name**: `KelsGaming RO`
-- **Login Server IP**: `54.253.142.107`
-- **Login Port**: `6900`
-- **Client Version**: `55` (Compatible with 2018-2022 RO clients)
-- **Path in Client**: Place in `data/sclientinfo.xml` or pack into `data.grf` / `KelsGamingRO.grf`.
-
-### 2. `data.ini`
-Defines the load order for the GRF archives:
-- `0=KelsGamingRO.grf` (Custom server palettes, loading screens, UI skins, maps)
-- `1=rdata.grf`
-- `2=data.grf` (Core Ragnarok client assets)
+- **Google Drive Link**: [Download Ragnarok-Configured-Client.zip](https://drive.google.com/file/d/1MaeJbH7gIZErQ9hTETIQf9PyOwso4tLQ/view?usp=sharing)
+- **Archive Name**: `Ragnarok-Configured-Client.zip`
+- **Extracted Folder**: `Ragnarok-Configured-Client/`
+- **Game Executable**: `2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe`
 
 ---
 
-## Client Packaging Checklist
+## 🎮 Intended Player Experience
 
-To produce the final `KelsGamingRO_Full_Client_v1.2.0.zip` for download:
+1. Player visits `http://54.253.142.107/download`
+2. Downloads `Ragnarok-Configured-Client.zip` from Google Drive.
+3. Extracts folder to `C:\Games\Ragnarok-Configured-Client`.
+4. Runs `2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe` (right-clicks to create a desktop shortcut).
+5. Enters registered account credentials and plays!
 
-1. **Executable (`KelsGamingRO.exe`)**:
-   - Use NEMO or WARP Patcher with standard recommended diffs:
-     - `Read Data folder first`
-     - `Use Custom Clientinfo` -> `clientinfo.xml` / `sclientinfo.xml`
-     - `Disable Packet Encryption` (matches rAthena `packet_db`)
-     - `Allow Multiple Windows`
-     - `Disable Multiple Game Guard / Anti-cheat clashes`
-     - `Restore Old Login Window / Modern Custom UI`
-2. **Setup Program (`Setup.exe` / `OpenSetup.exe`)**:
-   - Include `OpenSetup.exe` so players can easily change graphics resolution (1920x1080, Fullscreen, Borderless Window) and sound volume.
-3. **Sound & BGM**:
-   - Include `BGM/` folder with Ragnarok music tracks.
-4. **Compression**:
-   - Package all files using ZIP / 7z or Inno Setup installer.
-   - Host the generated ZIP file on your AWS S3 bucket, Cloudflare R2, Google Drive, or high-speed CDN.
-   - Update download URL in `backend/.env` or `downloadService.js`.
+---
+
+## 🔄 Dynamic Server IP Maintenance (No Redownload Needed)
+
+For AWS cloud cost-efficiency, the server IP may occasionally change upon server restarts.
+Players **DO NOT** need to redownload the client.
+
+To update the game client to the new IP:
+1. Open `Ragnarok-Configured-Client\data\clientinfo.xml` in Notepad.
+2. Update the `<address>` tag with the new IP displayed on the website:
+   ```xml
+   <address>54.253.142.107</address>
+   ```
+3. Save the file and run the launcher!
