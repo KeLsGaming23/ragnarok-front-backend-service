@@ -8,6 +8,7 @@ import { accountService } from '../services/accountService';
 import AccountSummary from '../components/dashboard/AccountSummary';
 import CharacterRoster from '../components/dashboard/CharacterRoster';
 import SecuritySettings from '../components/dashboard/SecuritySettings';
+import InventoryViewerModal from '../components/dashboard/InventoryViewerModal';
 import ServerStatusWidget from '../components/home/ServerStatusWidget';
 import Alert from '../components/common/Alert';
 import { Shield, RefreshCw } from 'lucide-react';
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [selectedCharForInventory, setSelectedCharForInventory] = useState(null);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -69,12 +71,20 @@ export default function DashboardPage() {
           {/* Character Roster */}
           <CharacterRoster
             characters={profileData?.characters || []}
+            onViewInventory={(char) => setSelectedCharForInventory(char)}
           />
 
           {/* Live Server Status Section */}
           <div className="pt-6">
             <ServerStatusWidget />
           </div>
+
+          {/* Character Inventory & Storage Modal */}
+          <InventoryViewerModal
+            character={selectedCharForInventory}
+            isOpen={Boolean(selectedCharForInventory)}
+            onClose={() => setSelectedCharForInventory(null)}
+          />
 
           {/* Password Change Modal */}
           <SecuritySettings

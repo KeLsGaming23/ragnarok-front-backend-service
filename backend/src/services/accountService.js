@@ -3,8 +3,15 @@
  */
 import { AccountRepository } from '../repositories/accountRepository.js';
 import { CharRepository } from '../repositories/charRepository.js';
+import { InventoryRepository } from '../repositories/inventoryRepository.js';
 import { hashPassword, verifyPassword } from '../utils/passwordUtils.js';
 import { getJobInfo } from '../utils/classNames.js';
+import { 
+  resolveItemInfo, 
+  resolveCardNames, 
+  getEquipSlotName, 
+  formatItemTitle 
+} from '../utils/itemDb.js';
 
 export class AccountService {
   /**
@@ -108,6 +115,108 @@ export class AccountService {
       throw err;
     }
 
-    return { success: true };
+  /**
+   * Get character inventory and cart items
+   */
+  static async getCharacterInventory(accountId, charId) {
+    const character = await InventoryRepository.getCharacterOwnership(charId, accountId);
+    if (!character) {
+      const err = new Error('Character not found or does not belong to this account');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const jobInfo = getJobInfo(character.class);
+    const rawInventory = await InventoryRepository.getInventoryByCharId(charId);
+    const rawCart = await InventoryRepository.getCartByCharId(charId);
+
+    const mapItem = (item) => {
+      const itemInfo = resolveItemInfo(item.nameid);
+      const cards = resolveCardNames(item.card0, item.card1, item.card2, item.card3);
+      const equipSlotName = getEquipSlotName(item.equip);
+      const title = formatItemTitle(item);
+
+      return {
+        id: item.id,
+        nameId: item.nameid,
+        name: itemInfo.name,
+        title,
+        amount: item.amount,
+        type: itemInfo.type,
+        slots: itemInfo.slots,
+        weight: itemInfo.weight,
+        isEquipped: Boolean(item.equip && item.equip > 0),
+        equipSlot: item.equip,
+        equipSlotName,
+        isIdentified: Boolean(item.identify),
+        refine: item.refine || 0,
+        cards,
+        expireTime: item.expire_time || 0,
+        uniqueId: item.unique_id || null
+      };
+    };
+
+    const inventory = rawInventory.map(mapItem);
+    const cart = rawCart.map(mapItem);
+
+    // Group equipped items
+    const equipment = inventory.filter(i => i.isEquipped);
+
+    return {
+      character: {
+        charId: character.char_id,
+        name: character.name,
+        className: jobInfo.name,
+        baseLevel: character.base_level,
+        jobLevel: character.job_level,
+        zeny: character.zeny,
+        online: Boolean(character.online)
+      },
+      inventory,
+      cart,
+      equipment,
+      totalInventoryItems: inventory.length,
+      totalCartItems: cart.length
+    };
+  }
+
+  /**
+   * Get account Kafra storage items
+   */
+  static async getAccountStorage(accountId) {
+    const account = await AccountRepository.findById(accountId);
+    if (!account) {
+      const err = new Error('Account not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const rawStorage = await InventoryRepository.getStorageByAccountId(accountId);
+    const storage = rawStorage.map((item) => {
+      const itemInfo = resolveItemInfo(item.nameid);
+      const cards = resolveCardNames(item.card0, item.card1, item.card2, item.card3);
+      const title = formatItemTitle(item);
+
+      return {
+        id: item.id,
+        nameId: item.nameid,
+        name: itemInfo.name,
+        title,
+        amount: item.amount,
+        type: itemInfo.type,
+        slots: itemInfo.slots,
+        weight: itemInfo.weight,
+        isIdentified: Boolean(item.identify),
+        refine: item.refine || 0,
+        cards,
+        expireTime: item.expire_time || 0,
+        uniqueId: item.unique_id || null
+      };
+    });
+
+    return {
+      storage,
+      totalStorageItems: storage.length
+    };
   }
 }

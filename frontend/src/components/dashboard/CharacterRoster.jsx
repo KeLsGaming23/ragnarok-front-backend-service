@@ -11,11 +11,12 @@ import {
   Zap, 
   CircleDot, 
   Sparkles, 
-  Compass 
+  Compass,
+  Package
 } from 'lucide-react';
 import { formatZeny, getTierBadgeClass, formatDate } from '../../utils/formatters';
 
-export default function CharacterRoster({ characters = [] }) {
+export default function CharacterRoster({ characters = [], onViewInventory }) {
   if (!characters || characters.length === 0) {
     return (
       <div className="ro-card p-12 text-center border border-dashed border-ro-border rounded-xl">
@@ -150,9 +151,19 @@ export default function CharacterRoster({ characters = [] }) {
                 </div>
               </div>
 
-              {/* Footer timestamp */}
-              <div className="mt-4 pt-3 border-t border-ro-border/40 text-[10px] text-ro-text-muted">
-                Last active: {formatDate(char.lastLogin)}
+              {/* View Inventory Action */}
+              <div className="mt-4 pt-3 border-t border-ro-border/40 flex items-center justify-between gap-2">
+                <span className="text-[10px] text-ro-text-muted">
+                  Last: {formatDate(char.lastLogin)}
+                </span>
+
+                <button
+                  onClick={() => onViewInventory && onViewInventory(char)}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-ro-gold/10 hover:bg-ro-gold text-ro-gold hover:text-ro-bg border border-ro-gold/30 transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  <span>Inventory & Gear</span>
+                </button>
               </div>
             </div>
           );

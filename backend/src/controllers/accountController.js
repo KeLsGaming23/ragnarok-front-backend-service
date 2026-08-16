@@ -32,4 +32,23 @@ export class AccountController {
       next(err);
     }
   }
+
+  static async getCharacterInventory(req, res, next) {
+    try {
+      const { charId } = req.params;
+      const data = await AccountService.getCharacterInventory(req.user.accountId, parseInt(charId, 10));
+      return sendSuccess(res, 'Character inventory retrieved successfully', data, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getAccountStorage(req, res, next) {
+    try {
+      const data = await AccountService.getAccountStorage(req.user.accountId);
+      return sendSuccess(res, 'Account storage retrieved successfully', data, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
 }

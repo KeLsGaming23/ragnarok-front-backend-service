@@ -8,6 +8,12 @@ import { registerSchema, loginSchema } from '../src/validators/authValidator.js'
 import { AuthService } from '../src/services/authService.js';
 import { AccountRepository } from '../src/repositories/accountRepository.js';
 import { ServerStatusService } from '../src/services/serverStatusService.js';
+import { 
+  resolveItemInfo, 
+  resolveCardNames, 
+  formatItemTitle, 
+  getEquipSlotName 
+} from '../src/utils/itemDb.js';
 
 let passed = 0;
 let failed = 0;
@@ -118,6 +124,30 @@ async function runTests() {
   assert(status.services.charServer.port === 6121, 'Char port is 6121');
   assert(status.services.mapServer.port === 5121, 'Map port is 5121');
   assert(typeof status.overallStatus === 'string', 'Overall status returned');
+
+  // 6. Test Item DB & Equipment Resolvers
+  console.log('\n[6] Testing Item DB & Equipment Resolvers');
+  const potion = resolveItemInfo(501);
+  assert(potion.name === 'Red Potion' && potion.type === 'usable', 'Item 501 resolves to Red Potion (usable)');
+
+  const dragonSlayer = resolveItemInfo(1161);
+  assert(dragonSlayer.name === 'Dragon Slayer' && dragonSlayer.type === 'weapon', 'Item 1161 resolves to Dragon Slayer (weapon)');
+
+  const cards = resolveCardNames(4006, 4007, 0, 0);
+  assert(cards.length === 2 && cards[0].name === 'Hydra Card', 'Cards resolve Hydra and Skeleton Worker');
+
+  const formattedTitle = formatItemTitle({
+    nameid: 1104,
+    refine: 8,
+    card0: 4006,
+    card1: 4006,
+    card2: 0,
+    card3: 0
+  });
+  assert(formattedTitle === '+8 Blade [4] (Hydra, Hydra)', 'Format item title with refine and slotted cards');
+
+  const equipSlot = getEquipSlotName(2);
+  assert(equipSlot === 'Right Hand (Weapon)', 'Equip bitmask 2 resolves to Right Hand (Weapon)');
 
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   if (failed > 0) process.exit(1);
