@@ -51,4 +51,36 @@ export class AccountController {
       next(err);
     }
   }
+
+  static async deleteItem(req, res, next) {
+    try {
+      const { charId, itemId } = req.params;
+      const amount = req.body.amount || 1;
+      const result = await AccountService.deleteCharacterItem(
+        req.user.accountId,
+        parseInt(charId, 10),
+        parseInt(itemId, 10),
+        amount
+      );
+      return sendSuccess(res, result.message, result, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async sendItemMail(req, res, next) {
+    try {
+      const { charId, itemId } = req.params;
+      const { recipientName, amount, title, message } = req.body;
+      const result = await AccountService.sendCharacterItemMail(
+        req.user.accountId,
+        parseInt(charId, 10),
+        parseInt(itemId, 10),
+        { recipientName, amount: amount || 1, title, message }
+      );
+      return sendSuccess(res, result.message, result, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
 }

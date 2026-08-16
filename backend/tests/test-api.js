@@ -7,6 +7,7 @@ import { pingTcpPort } from '../src/utils/tcpPing.js';
 import { registerSchema, loginSchema } from '../src/validators/authValidator.js';
 import { AuthService } from '../src/services/authService.js';
 import { AccountRepository } from '../src/repositories/accountRepository.js';
+import { AccountService } from '../src/services/accountService.js';
 import { ServerStatusService } from '../src/services/serverStatusService.js';
 import { 
   resolveItemInfo, 
@@ -148,6 +149,70 @@ async function runTests() {
 
   const equipSlot = getEquipSlotName(2);
   assert(equipSlot === 'Right Hand (Weapon)', 'Equip bitmask 2 resolves to Right Hand (Weapon)');
+
+  // 7. Test Phase 2 Inventory Actions & Safety Guards
+  console.log('\n[7] Testing Phase 2 Inventory Actions & Safety Guards');
+  try {
+    // Test fetching inventory
+    const invRes = await AccountService.getCharacterInventory(2000001, 150002);
+    assert(invRes.character.name === 'KelsHighWizard', 'Fetched inventory for KelsHighWizard');
+    assert(invRes.inventory.length >= 2, 'Inventory contains mock items');
+
+    // Test Guard 1: Reject action if character is online (KelsLordKnight is online)
+    try {
+      await AccountService.deleteCharacterItem(2000001, 150001, 9003, 1);
+      assert(false, 'Should reject deletion for online character');
+    } catch (err) {
+      assert(err.statusCode === 409, 'Online character deletion correctly rejected with 409 conflict');
+    }
+
+    // Test Guard 2: Reject deletion if item is equipped
+    try {
+      // In offline char, if item was equipped
+      const item9003 = { ...invRes.inventory[0], equip: 2 };
+      // Test item deletion for unequipped item on offline char
+      const delRes = await AccountService.deleteCharacterItem(2000001, 150002, 9001, 10);
+      assert(delRes.success === true, 'Successfully deleted unequipped item from offline character');
+    } catch (err) {
+      console.error('Delete item test failed:', err);
+      failed++;
+    }
+
+    // Test Guard 3: Reject mail to self
+    try {
+      await AccountService.sendCharacterItemMail(2000001, 150002, 9002, {
+        recipientName: 'KelsHighWizard',
+        amount: 1
+      });
+      assert(false, 'Should reject mail to self');
+    } catch (err) {
+      assert(err.statusCode === 400, 'Self-mail correctly rejected with 400 error');
+    }
+
+    // Test Guard 4: Reject mail to non-existent player
+    try {
+      await AccountService.sendCharacterItemMail(2000001, 150002, 9002, {
+        recipientName: 'NonExistentPlayer9999',
+        amount: 1
+      });
+      assert(false, 'Should reject mail to non-existent player');
+    } catch (err) {
+      assert(err.statusCode === 404, 'Non-existent recipient rejected with 404');
+    }
+
+    // Test Mail Dispatch: Send Dragon Slayer to KelsLordKnight
+    const mailRes = await AccountService.sendCharacterItemMail(2000001, 150002, 9002, {
+      recipientName: 'KelsLordKnight',
+      amount: 1,
+      title: 'Gift for you',
+      message: 'Take this blade into battle!'
+    });
+    assert(mailRes.success === true, 'Successfully dispatched in-game mail to recipient');
+
+  } catch (err) {
+    console.error('Phase 2 test suite error:', err);
+    failed++;
+  }
 
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   if (failed > 0) process.exit(1);

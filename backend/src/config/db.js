@@ -112,7 +112,59 @@ const mockStore = {
       last_login: new Date(Date.now() - 3600000 * 5).toISOString().slice(0, 19).replace('T', ' '),
       sex: 'M'
     }
-  ]
+  ],
+  inventory: [
+    {
+      id: 9001,
+      char_id: 150002, // KelsHighWizard (Offline)
+      nameid: 501, // Red Potion
+      amount: 50,
+      equip: 0,
+      identify: 1,
+      refine: 0,
+      attribute: 0,
+      card0: 0,
+      card1: 0,
+      card2: 0,
+      card3: 0,
+      expire_time: 0,
+      unique_id: null
+    },
+    {
+      id: 9002,
+      char_id: 150002,
+      nameid: 1161, // Dragon Slayer
+      amount: 1,
+      equip: 0,
+      identify: 1,
+      refine: 8,
+      attribute: 0,
+      card0: 4006, // Hydra Card
+      card1: 4006, // Hydra Card
+      card2: 0,
+      card3: 0,
+      expire_time: 0,
+      unique_id: null
+    },
+    {
+      id: 9003,
+      char_id: 150001, // KelsLordKnight (Online)
+      nameid: 1201, // Knife
+      amount: 1,
+      equip: 2, // Right Hand (Equipped)
+      identify: 1,
+      refine: 0,
+      attribute: 0,
+      card0: 0,
+      card1: 0,
+      card2: 0,
+      card3: 0,
+      expire_time: 0,
+      unique_id: null
+    }
+  ],
+  mail: [],
+  mail_attachments: []
 };
 
 export async function initDatabase() {
@@ -132,6 +184,31 @@ export async function initDatabase() {
     console.warn(`[Database] Switching to Local Fallback Store mode for API resilience.`);
     return false;
   }
+}
+
+/**
+ * Execute a callback within an atomic SQL transaction
+ */
+export async function withTransaction(callback) {
+  if (pool && isConnected && !fallbackMode) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      const result = await callback(connection);
+      await connection.commit();
+      return result;
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // Fallback mode transaction simulation
+  return callback({
+    execute: async (sql, params) => [executeMockQuery(sql, params)]
+  });
 }
 
 /**
@@ -221,11 +298,84 @@ function executeMockQuery(sql, params) {
     return { affectedRows: 0 };
   }
 
+  // SELECT FROM char WHERE char_id = ? AND account_id = ?
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('char_id = ?') && normalizedSql.includes('account_id = ?')) {
+    const charId = parseInt(params[0], 10);
+    const accountId = parseInt(params[1], 10);
+    const found = mockStore.chars.filter(c => c.char_id === charId && c.account_id === accountId);
+    return found;
+  }
+
   // SELECT FROM char WHERE account_id = ?
-  if (normalizedSql.includes('select') && normalizedSql.includes('char') && normalizedSql.includes('account_id =')) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('account_id =')) {
     const accountId = parseInt(params[0], 10);
     const found = mockStore.chars.filter(c => c.account_id === accountId);
     return found;
+  }
+
+  // SELECT FROM char WHERE lower(name) = lower(?)
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('lower(name) = lower(?)')) {
+    const name = String(params[0] || '').toLowerCase();
+    const found = mockStore.chars.filter(c => c.name.toLowerCase() === name);
+    return found;
+  }
+
+  // SELECT FROM char WHERE char_id = ?
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('char_id = ?')) {
+    const charId = parseInt(params[0], 10);
+    const found = mockStore.chars.filter(c => c.char_id === charId);
+    return found;
+  }
+
+  // SELECT FROM inventory WHERE id = ? AND char_id = ?
+  if (normalizedSql.includes('select') && normalizedSql.includes('inventory') && (normalizedSql.includes('where id = ?') || normalizedSql.includes('and id = ?'))) {
+    const id = parseInt(params[0], 10);
+    const charId = parseInt(params[1], 10);
+    return mockStore.inventory.filter(i => i.id === id && i.char_id === charId);
+  }
+
+  // SELECT FROM inventory WHERE char_id = ?
+  if (normalizedSql.includes('select') && normalizedSql.includes('inventory') && normalizedSql.includes('char_id = ?')) {
+    const charId = parseInt(params[0], 10);
+    return mockStore.inventory.filter(i => i.char_id === charId);
+  }
+
+  // DELETE FROM inventory WHERE id = ? AND char_id = ?
+  if (normalizedSql.includes('delete from inventory') && normalizedSql.includes('id = ?') && normalizedSql.includes('char_id = ?')) {
+    const id = parseInt(params[0], 10);
+    const charId = parseInt(params[1], 10);
+    const idx = mockStore.inventory.findIndex(i => i.id === id && i.char_id === charId);
+    if (idx !== -1) {
+      mockStore.inventory.splice(idx, 1);
+      return { affectedRows: 1 };
+    }
+    return { affectedRows: 0 };
+  }
+
+  // UPDATE inventory SET amount = amount - ? WHERE id = ? AND char_id = ?
+  if (normalizedSql.includes('update inventory set amount = amount - ?')) {
+    const decr = parseInt(params[0], 10);
+    const id = parseInt(params[1], 10);
+    const charId = parseInt(params[2], 10);
+    const item = mockStore.inventory.find(i => i.id === id && i.char_id === charId);
+    if (item) {
+      item.amount -= decr;
+      return { affectedRows: 1 };
+    }
+    return { affectedRows: 0 };
+  }
+
+  // INSERT INTO mail
+  if (normalizedSql.includes('insert into mail') || normalizedSql.includes('insert into `mail`')) {
+    const newMailId = mockStore.mail.length + 1;
+    mockStore.mail.push({ id: newMailId, params });
+    return { insertId: newMailId, affectedRows: 1 };
+  }
+
+  // INSERT INTO mail_attachments
+  if (normalizedSql.includes('insert into mail_attachments') || normalizedSql.includes('insert into `mail_attachments`')) {
+    mockStore.mail_attachments.push({ params });
+    return { affectedRows: 1 };
   }
 
   // SELECT COUNT(*) online FROM char WHERE online = 1

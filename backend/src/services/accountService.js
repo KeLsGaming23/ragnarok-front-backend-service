@@ -4,6 +4,7 @@
 import { AccountRepository } from '../repositories/accountRepository.js';
 import { CharRepository } from '../repositories/charRepository.js';
 import { InventoryRepository } from '../repositories/inventoryRepository.js';
+import { withTransaction } from '../config/db.js';
 import { hashPassword, verifyPassword } from '../utils/passwordUtils.js';
 import { getJobInfo } from '../utils/classNames.js';
 import { 
@@ -220,6 +221,125 @@ export class AccountService {
     return {
       storage,
       totalStorageItems: storage.length
+    };
+  }
+
+  /**
+   * Delete / Destroy an item from character inventory (Must be offline & unequipped)
+   */
+  static async deleteCharacterItem(accountId, charId, itemId, amountToDelete = 1) {
+    const character = await InventoryRepository.getCharacterOwnership(charId, accountId);
+    if (!character) {
+      const err = new Error('Character not found or does not belong to this account');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (character.online) {
+      const err = new Error('Character is currently online in-game. Please log out your character before modifying inventory.');
+      err.statusCode = 409;
+      throw err;
+    }
+
+    const item = await InventoryRepository.getItemById(itemId, charId);
+    if (!item) {
+      const err = new Error('Item not found in character inventory');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (item.equip && item.equip > 0) {
+      const err = new Error('Cannot delete an equipped item. Please unequip the item in-game first.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const validAmount = Math.max(1, Math.min(amountToDelete, item.amount));
+    const itemTitle = formatItemTitle(item);
+
+    const deleted = await InventoryRepository.deleteItem(itemId, charId, validAmount, item.amount);
+    if (!deleted) {
+      const err = new Error('Failed to delete item from inventory');
+      err.statusCode = 500;
+      throw err;
+    }
+
+    return {
+      success: true,
+      message: `Successfully destroyed ${validAmount > 1 ? `${validAmount}x ` : ''}${itemTitle}.`,
+      deletedAmount: validAmount
+    };
+  }
+
+  /**
+   * Send item to another player via in-game Mail / RODEX (Must be offline & unequipped)
+   */
+  static async sendCharacterItemMail(accountId, charId, itemId, { recipientName, amount = 1, title, message }) {
+    const senderChar = await InventoryRepository.getCharacterOwnership(charId, accountId);
+    if (!senderChar) {
+      const err = new Error('Sender character not found or does not belong to this account');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (senderChar.online) {
+      const err = new Error('Your character is currently online in-game. Please log out before dispatching in-game mail.');
+      err.statusCode = 409;
+      throw err;
+    }
+
+    // Find recipient character
+    const recipientChar = await InventoryRepository.findCharacterByName(recipientName);
+    if (!recipientChar) {
+      const err = new Error(`Recipient character "${recipientName}" does not exist in Midgard.`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (recipientChar.char_id === senderChar.char_id) {
+      const err = new Error('You cannot send mail to yourself. Use Kafra Storage instead.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const item = await InventoryRepository.getItemById(itemId, charId);
+    if (!item) {
+      const err = new Error('Item not found in character inventory');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    if (item.equip && item.equip > 0) {
+      const err = new Error('Cannot send equipped items. Please unequip the item in-game first.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const validAmount = Math.max(1, Math.min(amount, item.amount));
+    const itemTitle = formatItemTitle(item);
+
+    // Execute atomic transfer
+    const result = await withTransaction(async (conn) => {
+      // Deduct or remove from sender inventory
+      await InventoryRepository.deleteItem(itemId, charId, validAmount, item.amount, conn);
+
+      // Insert mail and attachment
+      return await InventoryRepository.sendMailWithAttachment({
+        senderChar,
+        recipientChar,
+        item,
+        amountToSend: validAmount,
+        title: title || `Web Gift: ${itemTitle}`,
+        message: message || `Sent to you from ${senderChar.name} via KelsGaming RO Web Platform.`,
+        zenyFee: 0,
+        connection: conn
+      });
+    });
+
+    return {
+      success: true,
+      message: `Successfully sent ${validAmount > 1 ? `${validAmount}x ` : ''}${itemTitle} to ${recipientChar.name} via in-game mail!`,
+      mailId: result.mailId
     };
   }
 }

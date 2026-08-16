@@ -31,5 +31,17 @@ export const accountService = {
   async getAccountStorage() {
     const res = await api.get('/api/account/storage');
     return res.data;
+  },
+
+  async deleteCharacterItem(charId, itemId, amount = 1) {
+    const res = await api.delete(`/api/account/characters/${charId}/inventory/${itemId}`, {
+      data: { amount }
+    });
+    return res;
+  },
+
+  async sendCharacterItemMail(charId, itemId, payload) {
+    const res = await api.post(`/api/account/characters/${charId}/inventory/${itemId}/mail`, payload);
+    return res;
   }
 };
