@@ -73,7 +73,7 @@ export class AccountRepository {
   /**
    * Create a new rAthena login account
    */
-  static async createAccount({ username, hashedPassword, sex = 'M', email, birthdate = '2000-01-01' }) {
+  static async createAccount({ username, hashedPassword, sex = 'M', email, birthdate = '2000-01-01', lastIp = '127.0.0.1' }) {
     const sql = `
       INSERT INTO login (
         userid, user_pass, sex, email, group_id, state,
@@ -82,16 +82,18 @@ export class AccountRepository {
       ) VALUES (
         ?, ?, ?, ?, 0, 0,
         0, 0, 0, NULL,
-        NULL, ?, 9, '', 0, 0, 0
+        ?, ?, 9, '', 0, 0, 0
       )
     `;
-    const params = [username, hashedPassword, sex, email, birthdate];
+    const clientIp = lastIp || '127.0.0.1';
+    const params = [username, hashedPassword, sex, email, clientIp, birthdate];
     const result = await executeQuery(sql, params);
     return {
       accountId: result.insertId,
       username,
       email,
-      sex
+      sex,
+      lastIp: clientIp
     };
   }
 

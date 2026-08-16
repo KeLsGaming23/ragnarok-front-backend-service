@@ -31,12 +31,14 @@ export class AuthService {
     const hashedPassword = await hashPassword(password, 'md5');
 
     // 4. Create account in rAthena database
+    const clientIp = ip || '127.0.0.1';
     const newAccount = await AccountRepository.createAccount({
       username,
       hashedPassword,
       sex,
       email,
-      birthdate: '2000-01-01'
+      birthdate: '2000-01-01',
+      lastIp: clientIp
     });
 
     // 5. Generate JWT token for web session

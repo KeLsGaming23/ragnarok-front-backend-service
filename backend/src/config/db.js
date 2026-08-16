@@ -182,7 +182,7 @@ function executeMockQuery(sql, params) {
       ? Math.max(...mockStore.accounts.map(a => a.account_id)) + 1
       : 2000001;
     
-    // Params order in accountRepository: [userid, user_pass, sex, email, birthdate]
+    // Params order in accountRepository: [userid, user_pass, sex, email, last_ip, birthdate]
     const newAccount = {
       account_id: newId,
       userid: params[0],
@@ -195,8 +195,8 @@ function executeMockQuery(sql, params) {
       expiration_time: 0,
       logincount: 0,
       lastlogin: null,
-      last_ip: null,
-      birthdate: params[4] || '2000-01-01',
+      last_ip: params[4] || '127.0.0.1',
+      birthdate: params[5] || '2000-01-01',
       character_slots: 9,
       pincode: '',
       pincode_change: 0,

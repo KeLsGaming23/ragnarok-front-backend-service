@@ -5,8 +5,8 @@ import { hashPassword, verifyPassword } from '../src/utils/passwordUtils.js';
 import { getJobInfo } from '../src/utils/classNames.js';
 import { pingTcpPort } from '../src/utils/tcpPing.js';
 import { registerSchema, loginSchema } from '../src/validators/authValidator.js';
-import { SERVER_CONFIG } from '../src/config/serverConfig.js';
 import { AuthService } from '../src/services/authService.js';
+import { AccountRepository } from '../src/repositories/accountRepository.js';
 import { ServerStatusService } from '../src/services/serverStatusService.js';
 
 let passed = 0;
@@ -72,14 +72,28 @@ async function runTests() {
   });
   assert(mismatchedPass.success === false, 'Mismatched passwords rejected');
 
-  // 4. Test Service Registration & Login Flow
+  // 4. Test Service Registration & Login Flow with client IP mapping
   console.log('\n[4] Testing AuthService Registration & Login Flow');
   try {
+    // Test AccountRepository createAccount with last_ip
+    const repoAccount = await AccountRepository.createAccount({
+      username: 'repo_ip_test',
+      hashedPassword: '482c811da5d5b4bc6d497ffa98491e38',
+      sex: 'M',
+      email: 'repo_ip_test@kelsgaming.ro',
+      birthdate: '2000-01-01',
+      lastIp: '203.0.113.195'
+    });
+    assert(Boolean(repoAccount.accountId), 'AccountRepository creates account with insertId');
+    assert(repoAccount.lastIp === '203.0.113.195', 'AccountRepository correctly maps non-null lastIp');
+
+    // Test AuthService register passing client IP
     const regResult = await AuthService.register({
       username: 'hero_test',
       email: 'hero_test@kelsgaming.ro',
       password: 'password123',
-      sex: 'M'
+      sex: 'M',
+      ip: '198.51.100.42'
     });
     assert(Boolean(regResult.token), 'Registration produces JWT token');
     assert(regResult.user.username === 'hero_test', 'User data returned correctly');
