@@ -3,8 +3,11 @@
  */
 import axios from 'axios';
 
+// Clean base URL to prevent duplicate /api/api/ paths if VITE_API_URL contains /api or trailing slash
+const rawBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/api\/?$/, '').replace(/\/$/, '');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '',
+  baseURL: rawBaseUrl,
   headers: {
     'Content-Type': 'application/json'
   },
