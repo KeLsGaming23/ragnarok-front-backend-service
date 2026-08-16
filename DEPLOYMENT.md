@@ -214,14 +214,9 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript application/json image/svg+xml;
 
-    # Serve React SPA Frontend
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Reverse Proxy /api Requests to Node.js Backend
-    location /api/ {
-        proxy_pass http://127.0.0.1:5000/api/;
+    # Reverse Proxy /api Requests to Node.js Backend (127.0.0.1:5000)
+    location /api {
+        proxy_pass http://127.0.0.1:5000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -231,6 +226,11 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
         proxy_read_timeout 90;
+    }
+
+    # Serve React SPA Frontend (Client-side routing fallback)
+    location / {
+        try_files $uri $uri/ /index.html;
     }
 
     # Security Headers
