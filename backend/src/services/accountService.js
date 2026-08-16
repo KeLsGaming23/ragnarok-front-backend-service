@@ -99,8 +99,8 @@ export class AccountService {
       throw err;
     }
 
-    // Hash and update
-    const newHashed = await hashPassword(newPassword, 'bcrypt');
+    // Hash and update using rAthena VARCHAR(32) MD5 format
+    const newHashed = await hashPassword(newPassword, 'md5');
     const updated = await AccountRepository.updatePassword(accountId, newHashed);
     if (!updated) {
       const err = new Error('Failed to update password');

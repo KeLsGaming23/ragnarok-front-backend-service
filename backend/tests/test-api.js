@@ -25,13 +25,14 @@ function assert(condition, name) {
 async function runTests() {
   console.log('\n--- Running KelsGaming RO Backend Verification Tests ---\n');
 
-  // 1. Test Password Hashing & Verification
-  console.log('[1] Testing Password Utilities');
+  // 1. Test Password Hashing & Verification (rAthena VARCHAR(32) MD5)
+  console.log('[1] Testing Password Utilities (rAthena VARCHAR(32) MD5)');
   const plain = 'RagnarokSecret123!';
-  const hashed = await hashPassword(plain, 'bcrypt');
-  assert(hashed.startsWith('$2a$') || hashed.startsWith('$2b$'), 'Bcrypt hash generated with valid prefix');
+  const hashed = await hashPassword(plain, 'md5');
+  assert(hashed.length === 32, 'MD5 hash is exactly 32 characters in length (VARCHAR(32) compliant)');
+  assert(/^[a-f0-9]{32}$/.test(hashed), 'MD5 hash is valid 32-character hexadecimal string');
   const validMatch = await verifyPassword(plain, hashed);
-  assert(validMatch === true, 'Valid password successfully verified');
+  assert(validMatch === true, 'Valid password successfully verified with rAthena MD5 algorithm');
   const invalidMatch = await verifyPassword('WrongPassword', hashed);
   assert(invalidMatch === false, 'Invalid password rejected');
 

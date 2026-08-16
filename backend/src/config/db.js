@@ -29,7 +29,7 @@ const mockStore = {
     {
       account_id: 2000001,
       userid: 'testplayer',
-      user_pass: '$2a$10$wT8mQyv7u4mN15v2cO8j6eU/w5q8w2D5r1Q2r3t4y5u6i7o8p9a0s', // bcrypt for 'password123'
+      user_pass: '482c811da5d5b4bc6d497ffa98491e38', // MD5 (VARCHAR(32)) for 'password123'
       sex: 'M',
       email: 'player@kelsgaming.ro',
       group_id: 0,

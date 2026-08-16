@@ -27,8 +27,8 @@ export class AuthService {
       throw err;
     }
 
-    // 3. Hash password using rAthena-compatible Bcrypt
-    const hashedPassword = await hashPassword(password, 'bcrypt');
+    // 3. Hash password using rAthena VARCHAR(32) MD5 format
+    const hashedPassword = await hashPassword(password, 'md5');
 
     // 4. Create account in rAthena database
     const newAccount = await AccountRepository.createAccount({

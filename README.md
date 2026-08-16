@@ -48,7 +48,7 @@ Official web platform and REST API service for **KelsGaming RO**, connecting to 
 ## 🚀 Key Features
 
 1. **Player Registration & rAthena Compatibility**:
-   - Safely hashes passwords using Bcrypt matching rAthena's login daemon.
+   - Hashes passwords using rAthena standard VARCHAR(32) MD5 format for 100% login server compatibility.
    - Creates valid player accounts with `group_id: 0`, `state: 0`, and 9 character slots.
    - Issues JWT for authenticated website sessions.
 2. **Player Dashboard & Character Roster**:

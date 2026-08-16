@@ -5,7 +5,7 @@ A production-ready Node.js and Express REST API service for **KelsGaming RO**, i
 ## Features
 
 - **rAthena Database Integration**: Direct, parameterized SQL queries on `login` and `char` tables.
-- **Secure Authentication**: Bcrypt password hashing matching rAthena login server format, JWT session issuance, and authorization middleware.
+- **Secure Authentication**: rAthena-compatible MD5 (VARCHAR(32)) password hashing for login server integration, JWT session issuance, and authorization middleware.
 - **Real-Time Service Health Monitoring**: Active TCP socket pinging to Login Server (`:6900`), Character Server (`:6121`), and Map Server (`:5121`).
 - **Player Dashboard Support**: Character roster lookup with job class mapping, character levels, stats, zeny, and online status.
 - **Security Protections**: Helmet headers, CORS policies, brute-force rate limiters, and Zod input validation.

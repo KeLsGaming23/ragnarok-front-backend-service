@@ -75,7 +75,7 @@ export default function AccountSummary({ account, onOpenPasswordModal, onLogout 
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>Account Security</span>
           </div>
-          <div className="text-sm font-semibold text-white">Bcrypt Protected</div>
+          <div className="text-sm font-semibold text-white">rAthena MD5 Synced</div>
         </div>
 
         <div className="bg-ro-bg/50 p-3.5 rounded-lg border border-ro-border/60">

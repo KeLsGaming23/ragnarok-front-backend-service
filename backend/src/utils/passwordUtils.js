@@ -1,29 +1,22 @@
 /**
  * Password utility for rAthena compatible hashing and verification
+ * Matches standard rAthena VARCHAR(32) MD5 password storage in `login.user_pass`
  */
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
-const SALT_ROUNDS = 10;
-
 /**
- * Hash a plain password using bcrypt (standard in modern rAthena) or MD5
+ * Hash a plain password using MD5 (Standard rAthena VARCHAR(32) format)
  * @param {string} password - Plaintext password
- * @param {string} mode - 'bcrypt' | 'md5'
- * @returns {Promise<string>} Hashed password
+ * @param {string} mode - 'md5' (default)
+ * @returns {Promise<string>} 32-character hexadecimal MD5 hash
  */
-export async function hashPassword(password, mode = 'bcrypt') {
-  if (mode === 'md5') {
-    return crypto.createHash('md5').update(password).digest('hex');
-  }
-  // Default to standard bcrypt ($2a$ / $2b$)
-  const salt = await bcrypt.genSalt(SALT_ROUNDS);
-  return bcrypt.hash(password, salt);
+export async function hashPassword(password, mode = 'md5') {
+  // rAthena VARCHAR(32) standard MD5 hash
+  return crypto.createHash('md5').update(password).digest('hex');
 }
 
 /**
- * Verify a plaintext password against a stored rAthena password hash.
- * Automatically recognizes Bcrypt ($2a$, $2b$, $2y$) or MD5 (32-char hex).
+ * Verify a plaintext password against the stored rAthena `login.user_pass` (VARCHAR(32) MD5)
  * @param {string} plainPassword - Plaintext password to test
  * @param {string} storedHash - Hash from rAthena `login.user_pass`
  * @returns {Promise<boolean>}
@@ -33,21 +26,12 @@ export async function verifyPassword(plainPassword, storedHash) {
     return false;
   }
 
-  // Bcrypt hash patterns ($2a$, $2b$, $2y$)
-  if (storedHash.startsWith('$2a$') || storedHash.startsWith('$2b$') || storedHash.startsWith('$2y$')) {
-    try {
-      return await bcrypt.compare(plainPassword, storedHash);
-    } catch {
-      return false;
-    }
-  }
-
-  // MD5 hash (32 hex characters)
+  // 1. Standard rAthena MD5 Hash (32 hex characters)
   if (/^[a-fA-F0-9]{32}$/.test(storedHash)) {
     const md5Hash = crypto.createHash('md5').update(plainPassword).digest('hex');
     return md5Hash.toLowerCase() === storedHash.toLowerCase();
   }
 
-  // Plaintext comparison fallback (if server is configured for plaintext in dev)
+  // 2. Direct comparison fallback (if server is configured with plaintext in dev)
   return plainPassword === storedHash;
 }
