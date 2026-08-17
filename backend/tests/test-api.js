@@ -32,14 +32,22 @@ function assert(condition, name) {
 async function runTests() {
   console.log('\n--- Running KelsGaming RO Backend Verification Tests ---\n');
 
-  // 1. Test Password Hashing & Verification (rAthena VARCHAR(32) MD5)
-  console.log('[1] Testing Password Utilities (rAthena VARCHAR(32) MD5)');
+  // 1. Test Password Storage & Verification (Raw plaintext by default + Legacy MD5/Bcrypt support)
+  console.log('[1] Testing Password Utilities (Raw plaintext + MD5/Bcrypt compatibility)');
   const plain = 'RagnarokSecret123!';
+  
+  // Test raw storage (default)
+  const rawStored = await hashPassword(plain, 'raw');
+  assert(rawStored === plain, 'Default storage mode returns raw plaintext for rAthena client compatibility');
+  const validRawMatch = await verifyPassword(plain, rawStored);
+  assert(validRawMatch === true, 'Raw password verifies successfully');
+
+  // Test MD5 storage (legacy compatibility)
   const hashed = await hashPassword(plain, 'md5');
   assert(hashed.length === 32, 'MD5 hash is exactly 32 characters in length (VARCHAR(32) compliant)');
   assert(/^[a-f0-9]{32}$/.test(hashed), 'MD5 hash is valid 32-character hexadecimal string');
   const validMatch = await verifyPassword(plain, hashed);
-  assert(validMatch === true, 'Valid password successfully verified with rAthena MD5 algorithm');
+  assert(validMatch === true, 'Valid password successfully verified with legacy rAthena MD5 hash');
   const invalidMatch = await verifyPassword('WrongPassword', hashed);
   assert(invalidMatch === false, 'Invalid password rejected');
 
@@ -120,7 +128,7 @@ async function runTests() {
   console.log('\n[5] Testing Server Health Status Service');
   const status = await ServerStatusService.getServerStatus(true);
   assert(status.serverName === 'KelsGaming RO', 'Server name matches KelsGaming RO');
-  assert(status.host === '54.253.142.107', 'Host IP matches 54.253.142.107');
+  assert(status.host === '32.236.113.36', 'Host IP matches 32.236.113.36');
   assert(status.services.loginServer.port === 6900, 'Login port is 6900');
   assert(status.services.charServer.port === 6121, 'Char port is 6121');
   assert(status.services.mapServer.port === 5121, 'Map port is 5121');
@@ -215,7 +223,7 @@ async function runTests() {
   }
 
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
-  if (failed > 0) process.exit(1);
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 runTests().catch(err => {

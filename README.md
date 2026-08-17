@@ -1,6 +1,6 @@
 # KelsGaming RO — Full-Stack Ragnarok Online Private Server Platform
 
-Official web platform and REST API service for **KelsGaming RO**, connecting to an rAthena server hosted on AWS EC2 (`54.253.142.107`).
+Official web platform and REST API service for **KelsGaming RO**, connecting to an rAthena server hosted on AWS EC2 (`32.236.113.36`).
 
 ---
 
@@ -37,9 +37,9 @@ Official web platform and REST API service for **KelsGaming RO**, connecting to 
          | (Ports 6900, 6121, 5121)         |
          +-----------------------------------+
          |   rAthena Game Server (AWS EC2)   |
-         |  Login: 54.253.142.107:6900       |
-         |  Char : 54.253.142.107:6121       |
-         |  Map  : 54.253.142.107:5121       |
+         |  Login: 32.236.113.36:6900        |
+         |  Char : 32.236.113.36:6121        |
+         |  Map  : 32.236.113.36:5121        |
          +-----------------------------------+
 ```
 
@@ -48,7 +48,7 @@ Official web platform and REST API service for **KelsGaming RO**, connecting to 
 ## 🚀 Key Features
 
 1. **Player Registration & rAthena Compatibility**:
-   - Hashes passwords using rAthena standard VARCHAR(32) MD5 format for 100% login server compatibility.
+   - Stores passwords in rAthena VARCHAR(32) format (supporting raw plaintext passwords for 100% `use_MD5_passwords: no` game client compatibility).
    - Creates valid player accounts with `group_id: 0`, `state: 0`, and 9 character slots.
    - Issues JWT for authenticated website sessions.
 2. **Player Dashboard & Character Roster**:
@@ -59,7 +59,7 @@ Official web platform and REST API service for **KelsGaming RO**, connecting to 
    - Real-time online player count queried from active sessions.
    - 10-second server caching to protect game sockets from flood.
 4. **1-Click Pre-Configured Game Client**:
-   - Pre-configured `clientinfo.xml` pointing to `54.253.142.107:6900`.
+   - Pre-configured `clientinfo.xml` pointing to `32.236.113.36:6900`.
    - Download page with direct high-speed server links and cloud mirrors (Google Drive, Mega, MediaFire).
    - 4-step launch guide: **Download -> Extract -> Run KelsGamingRO.exe -> Play**.
 5. **Security & Performance**:
@@ -104,7 +104,7 @@ Official web platform and REST API service for **KelsGaming RO**, connecting to 
 │   └── package.json
 │
 └── client-config/
-    ├── clientinfo.xml       # Pre-configured XML pointing to 54.253.142.107:6900
+    ├── clientinfo.xml       # Pre-configured XML pointing to 32.236.113.36:6900
     ├── data.ini             # GRF load order
     └── README-CLIENT-SETUP.md # Game client builder guide
 ```
@@ -133,4 +133,4 @@ Frontend Web App will be running on `http://localhost:5173`.
 
 ## 🚀 AWS EC2 Production Deployment
 
-For complete, step-by-step instructions on deploying this stack to your AWS EC2 Ubuntu instance (`54.253.142.107`) with PM2, Nginx reverse proxy, and SSL, refer to the [Deployment Manual (DEPLOYMENT.md)](./DEPLOYMENT.md).
+For complete, step-by-step instructions on deploying this stack to your AWS EC2 Ubuntu instance (`32.236.113.36`) with PM2, Nginx reverse proxy, and SSL, refer to the [Deployment Manual (DEPLOYMENT.md)](./DEPLOYMENT.md).

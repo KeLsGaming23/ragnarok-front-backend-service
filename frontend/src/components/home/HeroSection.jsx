@@ -32,7 +32,7 @@ export default function HeroSection() {
             Official rAthena Private Server
           </span>
           <span className="text-ro-border font-light">|</span>
-          <span className="text-xs sm:text-sm text-ro-text-secondary">AWS Hosted (54.253.142.107)</span>
+          <span className="text-xs sm:text-sm text-ro-text-secondary">AWS Hosted (32.236.113.36)</span>
         </div>
 
         {/* Hero Headline */}

@@ -1,6 +1,6 @@
 # KelsGaming RO — AWS EC2 Ubuntu Deployment Manual
 
-This guide walks you through deploying the **KelsGaming RO** full-stack platform (React Frontend + Node.js REST API) on your AWS EC2 Ubuntu server (`54.253.142.107`) alongside your existing rAthena game server.
+This guide walks you through deploying the **KelsGaming RO** full-stack platform (React Frontend + Node.js REST API) on your AWS EC2 Ubuntu server (`32.236.113.36`) alongside your existing rAthena game server.
 
 ---
 
@@ -58,7 +58,7 @@ In your AWS EC2 Console, navigate to **Instances** &rarr; Select your instance &
 Open your terminal (PowerShell / Command Prompt / Bash) and connect using your SSH key:
 
 ```bash
-ssh -i "your-key.pem" ubuntu@54.253.142.107
+ssh -i "your-key.pem" ubuntu@32.236.113.36
 ```
 
 Update system packages:
@@ -117,15 +117,19 @@ HOST=127.0.0.1
 NODE_ENV=production
 
 # Set your web domain or *
-CORS_ORIGIN=http://54.253.142.107,https://yourdomain.com
+CORS_ORIGIN=http://32.236.113.36,https://yourdomain.com
 
 # Generate a strong random string (e.g. openssl rand -base64 32)
 JWT_SECRET=your_super_secret_jwt_key_here_change_this_now
 JWT_EXPIRES_IN=2h
 JWT_REFRESH_EXPIRES_IN=7d
 
+# Password Storage Mode: 'raw' (default) or 'md5'
+PASSWORD_STORAGE_MODE=raw
+
 # rAthena Host & Ports (Local on EC2)
 RATHENA_HOST=127.0.0.1
+RATHENA_PUBLIC_IP=32.236.113.36
 RATHENA_LOGIN_PORT=6900
 RATHENA_CHAR_PORT=6121
 RATHENA_MAP_PORT=5121
@@ -202,7 +206,7 @@ Paste the following configuration:
 server {
     listen 80;
     listen [::]:80;
-    server_name 54.253.142.107 yourdomain.com www.yourdomain.com;
+    server_name 32.236.113.36 yourdomain.com www.yourdomain.com _;
 
     # Frontend Static Build Root
     root /var/www/kelsgaming-ro/frontend/dist;
@@ -256,13 +260,13 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-Now visit `http://54.253.142.107` in your browser! Your site is live!
+Now visit `http://32.236.113.36` in your browser! Your site is live!
 
 ---
 
 ## 🔒 8. Setup Free SSL / HTTPS (Certbot)
 
-If you have a domain name pointing to `54.253.142.107`:
+If you have a domain name pointing to `32.236.113.36`:
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx

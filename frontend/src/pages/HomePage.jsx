@@ -40,7 +40,7 @@ export default function HomePage() {
               Ready to Begin Your Adventure?
             </h2>
             <p className="text-sm text-ro-text-secondary leading-relaxed">
-              Download our fully pre-configured game client configured directly for AWS EC2 (<code className="text-amber-300 font-mono">54.253.142.107</code>). No complex setup required.
+              Download our fully pre-configured game client configured directly for AWS EC2 (<code className="text-amber-300 font-mono">32.236.113.36</code>). No complex setup required.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link

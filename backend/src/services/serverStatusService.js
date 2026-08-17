@@ -20,14 +20,15 @@ export class ServerStatusService {
       return cachedStatus;
     }
 
-    const host = SERVER_CONFIG.publicIp;
+    const pingHost = SERVER_CONFIG.pingHost || '127.0.0.1';
+    const displayHost = SERVER_CONFIG.publicIp;
     const timeout = SERVER_CONFIG.pingTimeoutMs;
 
     // Concurrently ping the three rAthena game server components
     const [loginResult, charResult, mapResult, onlinePlayers, serverStats] = await Promise.all([
-      pingTcpPort(host, SERVER_CONFIG.ports.login, timeout),
-      pingTcpPort(host, SERVER_CONFIG.ports.char, timeout),
-      pingTcpPort(host, SERVER_CONFIG.ports.map, timeout),
+      pingTcpPort(pingHost, SERVER_CONFIG.ports.login, timeout),
+      pingTcpPort(pingHost, SERVER_CONFIG.ports.char, timeout),
+      pingTcpPort(pingHost, SERVER_CONFIG.ports.map, timeout),
       CharRepository.countOnlinePlayers(),
       ServerRepository.getServerStats()
     ]);
@@ -45,7 +46,7 @@ export class ServerStatusService {
     cachedStatus = {
       serverName: SERVER_CONFIG.name,
       tagline: SERVER_CONFIG.tagline,
-      host,
+      host: displayHost,
       overallStatus,
       isOnline: isAllOnline,
       lastUpdated: new Date().toISOString(),

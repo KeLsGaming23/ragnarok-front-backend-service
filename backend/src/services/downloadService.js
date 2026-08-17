@@ -28,7 +28,7 @@ export class DownloadService {
           'Extract the ZIP file to your preferred folder (e.g. C:\\Games\\Ragnarok-Configured-Client).',
           'Open the folder and run 2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe (create a desktop shortcut for quick 1-click access).',
           'Enter your registered username and password to start playing immediately!',
-          'Server IP Changes: For AWS cost efficiency, if the server IP changes, simply edit Ragnarok-Configured-Client\\data\\clientinfo.xml in Notepad and update <address>54.253.142.107</address> with the new IP displayed on our website header.'
+          `Server IP Changes: If the server IP changes, simply edit Ragnarok-Configured-Client\\data\\clientinfo.xml in Notepad and update <address>${SERVER_CONFIG.publicIp}</address> with the new IP displayed on our website header.`
         ],
         mirrors: [
           {

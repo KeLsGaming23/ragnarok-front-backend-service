@@ -26,7 +26,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-ro-text-muted">
               <Server className="w-4 h-4 text-ro-crystal" />
-              <span>AWS EC2 Host: <code className="text-gray-300">54.253.142.107</code></span>
+              <span>AWS EC2 Host: <code className="text-gray-300">32.236.113.36</code></span>
             </div>
           </div>
 

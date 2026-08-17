@@ -1,11 +1,11 @@
 # KelsGaming RO - Backend REST API Service
 
-A production-ready Node.js and Express REST API service for **KelsGaming RO**, integrating directly with an AWS EC2 rAthena server (`54.253.142.107`) and MariaDB database.
+A production-ready Node.js and Express REST API service for **KelsGaming RO**, integrating directly with an AWS EC2 rAthena server (`32.236.113.36`) and MariaDB database.
 
 ## Features
 
 - **rAthena Database Integration**: Direct, parameterized SQL queries on `login` and `char` tables.
-- **Secure Authentication**: rAthena-compatible MD5 (VARCHAR(32)) password hashing for login server integration, JWT session issuance, and authorization middleware.
+- **Direct Client & Web Compatibility**: rAthena VARCHAR(32) password storage supporting raw plaintext passwords (for `use_MD5_passwords: no` game client compatibility) alongside backward-compatible MD5/Bcrypt verification, JWT session issuance, and authorization middleware.
 - **Real-Time Service Health Monitoring**: Active TCP socket pinging to Login Server (`:6900`), Character Server (`:6121`), and Map Server (`:5121`).
 - **Player Dashboard Support**: Character roster lookup with job class mapping, character levels, stats, zeny, and online status.
 - **Security Protections**: Helmet headers, CORS policies, brute-force rate limiters, and Zod input validation.

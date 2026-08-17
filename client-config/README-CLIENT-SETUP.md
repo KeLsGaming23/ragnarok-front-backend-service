@@ -15,7 +15,7 @@ This directory contains the exact pre-configured files required for the **KelsGa
 
 ## 🎮 Intended Player Experience
 
-1. Player visits `http://54.253.142.107/download`
+1. Player visits `http://32.236.113.36/download`
 2. Downloads `Ragnarok-Configured-Client.zip` from Google Drive.
 3. Extracts folder to `C:\Games\Ragnarok-Configured-Client`.
 4. Runs `2025-06-04_Ragexe_1748494356_clientinfo.xml_patched.exe` (right-clicks to create a desktop shortcut).
@@ -32,6 +32,6 @@ To update the game client to the new IP:
 1. Open `Ragnarok-Configured-Client\data\clientinfo.xml` in Notepad.
 2. Update the `<address>` tag with the new IP displayed on the website:
    ```xml
-   <address>54.253.142.107</address>
+   <address>32.236.113.36</address>
    ```
 3. Save the file and run the launcher!

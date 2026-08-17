@@ -27,14 +27,14 @@ export class AuthService {
       throw err;
     }
 
-    // 3. Hash password using rAthena VARCHAR(32) MD5 format
-    const hashedPassword = await hashPassword(password, 'md5');
+    // 3. Prepare password for rAthena database (raw plaintext by default)
+    const storedPassword = await hashPassword(password);
 
     // 4. Create account in rAthena database
     const clientIp = ip || '127.0.0.1';
     const newAccount = await AccountRepository.createAccount({
       username,
-      hashedPassword,
+      hashedPassword: storedPassword,
       sex,
       email,
       birthdate: '2000-01-01',

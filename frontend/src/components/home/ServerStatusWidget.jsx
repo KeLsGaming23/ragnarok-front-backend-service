@@ -54,7 +54,7 @@ export default function ServerStatusWidget() {
               Server Health & Status
             </h2>
             <p className="text-xs text-ro-text-muted">
-              Live AWS EC2 Node: <span className="font-mono text-gray-300">54.253.142.107</span>
+              Live AWS EC2 Node: <span className="font-mono text-gray-300">{status?.host || '32.236.113.36'}</span>
             </p>
           </div>
         </div>
