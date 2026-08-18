@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { accountService } from '../../services/accountService';
 import { formatZeny } from '../../utils/formatters';
+import ItemSprite from '../common/ItemSprite';
 
 export default function InventoryViewerModal({ character, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('inventory'); // 'equipment' | 'inventory' | 'cart' | 'storage'
@@ -405,14 +406,13 @@ export default function InventoryViewerModal({ character, isOpen, onClose }) {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      {/* Item Type Icon Avatar */}
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center border shrink-0 ${getTypeBadge(item.type)}`}>
-                        {item.type === 'weapon' && <Swords className="w-4 h-4" />}
-                        {item.type === 'armor' && <Shield className="w-4 h-4" />}
-                        {item.type === 'usable' && <FlaskConical className="w-4 h-4" />}
-                        {item.type === 'card' && <Sparkles className="w-4 h-4" />}
-                        {item.type === 'etc' && <Layers className="w-4 h-4" />}
-                      </div>
+                      {/* Item Sprite Avatar */}
+                      <ItemSprite
+                        itemId={item.nameId || item.nameid}
+                        itemType={item.type}
+                        size="md"
+                        className="shrink-0"
+                      />
 
                       {/* Item Details */}
                       <div>
@@ -433,13 +433,14 @@ export default function InventoryViewerModal({ character, isOpen, onClose }) {
 
                         {/* Card Attachments */}
                         {item.cards && item.cards.length > 0 && (
-                          <div className="flex items-center gap-1 mt-1 flex-wrap">
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             {item.cards.map((card, idx) => (
                               <span
                                 key={idx}
-                                className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30"
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30 flex items-center gap-1"
                               >
-                                🃏 {card.name}
+                                <ItemSprite itemId={card.cardId || card.id} itemType="card" size="sm" />
+                                <span>{card.name}</span>
                               </span>
                             ))}
                           </div>
@@ -547,14 +548,21 @@ export default function InventoryViewerModal({ character, isOpen, onClose }) {
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-ro-bg border border-ro-border flex items-center justify-between">
-              <div>
-                <span className="text-xs text-ro-text-muted">Target Item:</span>
-                <p className="font-bold text-sm text-white">
-                  {itemToDelete.title}
-                </p>
+            <div className="p-3.5 rounded-xl bg-ro-bg border border-ro-border flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <ItemSprite
+                  itemId={itemToDelete.nameId || itemToDelete.nameid}
+                  itemType={itemToDelete.type}
+                  size="md"
+                />
+                <div>
+                  <span className="text-xs text-ro-text-muted">Target Item:</span>
+                  <p className="font-bold text-sm text-white">
+                    {itemToDelete.title}
+                  </p>
+                </div>
               </div>
-              <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
+              <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20 shrink-0">
                 Max: {itemToDelete.amount}
               </span>
             </div>
@@ -661,14 +669,21 @@ export default function InventoryViewerModal({ character, isOpen, onClose }) {
             )}
 
             {/* Attached Item Box */}
-            <div className="p-3.5 rounded-xl bg-ro-bg border border-ro-border flex items-center justify-between">
-              <div>
-                <span className="text-xs text-ro-text-muted">Attached Item:</span>
-                <p className="font-bold text-sm text-white">
-                  {itemToMail.title}
-                </p>
+            <div className="p-3.5 rounded-xl bg-ro-bg border border-ro-border flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <ItemSprite
+                  itemId={itemToMail.nameId || itemToMail.nameid}
+                  itemType={itemToMail.type}
+                  size="md"
+                />
+                <div>
+                  <span className="text-xs text-ro-text-muted">Attached Item:</span>
+                  <p className="font-bold text-sm text-white">
+                    {itemToMail.title}
+                  </p>
+                </div>
               </div>
-              <span className="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-md border border-sky-500/20">
+              <span className="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-md border border-sky-500/20 shrink-0">
                 Available: {itemToMail.amount}
               </span>
             </div>
