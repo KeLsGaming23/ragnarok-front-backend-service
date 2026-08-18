@@ -241,6 +241,18 @@ export class AdminController {
     }
   }
 
+  /**
+   * GET /api/admin/castles
+   */
+  static async getCastles(req, res, next) {
+    try {
+      const data = await AdminService.getCastles();
+      sendSuccess(res, 'Castle ownership retrieved successfully', data);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   /* ========================================================================= */
   /* PHASE 4: WEB ITEM & MAIL / RODEX DISPATCHER                               */
   /* ========================================================================= */
