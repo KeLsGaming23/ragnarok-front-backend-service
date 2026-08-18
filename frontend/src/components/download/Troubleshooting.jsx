@@ -39,10 +39,10 @@ export default function Troubleshooting() {
               Open <code className="text-amber-300 font-mono">Ragnarok-Configured-Client\data\clientinfo.xml</code> in Notepad or any text editor.
             </li>
             <li>
-              Find the line: <code className="text-sky-300 font-mono">&lt;address&gt;32.236.113.36&lt;/address&gt;</code>
+              Find the line: <code className="text-sky-300 font-mono">&lt;address&gt;3.107.209.130&lt;/address&gt;</code>
             </li>
             <li>
-              Replace <code className="text-sky-300 font-mono">32.236.113.36</code> with the new Server IP displayed at the top of our website.
+              Replace <code className="text-sky-300 font-mono">3.107.209.130</code> with the new Server IP displayed at the top of our website.
             </li>
             <li>Save the file (<kbd className="px-1 py-0.5 rounded bg-ro-card border border-ro-border text-xs">Ctrl + S</kbd>) and launch the game!</li>
           </ol>

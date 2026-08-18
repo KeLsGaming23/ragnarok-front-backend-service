@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const dbConfig = {
-  host: process.env.DB_HOST || '32.236.113.36',
+  host: process.env.DB_HOST || '3.107.209.130',
   port: parseInt(process.env.DB_PORT, 10) || 3306,
   user: process.env.DB_USER || 'ragnarok',
   password: process.env.DB_PASSWORD || 'ragnarok',

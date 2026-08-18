@@ -128,7 +128,7 @@ async function runTests() {
   console.log('\n[5] Testing Server Health Status Service');
   const status = await ServerStatusService.getServerStatus(true);
   assert(status.serverName === 'KelsGaming RO', 'Server name matches KelsGaming RO');
-  assert(status.host === '32.236.113.36', 'Host IP matches 32.236.113.36');
+  assert(status.host === '3.107.209.130', 'Host IP matches 3.107.209.130');
   assert(status.services.loginServer.port === 6900, 'Login port is 6900');
   assert(status.services.charServer.port === 6121, 'Char port is 6121');
   assert(status.services.mapServer.port === 5121, 'Map port is 5121');

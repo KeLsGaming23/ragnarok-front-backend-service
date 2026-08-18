@@ -44,7 +44,7 @@ export default function DownloadHero({ downloadData }) {
           Download KelsGaming RO Client
         </h1>
         <p className="text-sm sm:text-base text-ro-text-secondary leading-relaxed">
-          Pre-configured for our AWS EC2 game server (<code className="text-amber-300 font-mono">32.236.113.36</code>). Hosted on high-speed Google Drive for fast, unlimited downloads.
+          Pre-configured for our AWS EC2 game server (<code className="text-amber-300 font-mono">3.107.209.130</code>). Hosted on high-speed Google Drive for fast, unlimited downloads.
         </p>
       </div>
 
@@ -102,7 +102,7 @@ export default function DownloadHero({ downloadData }) {
                 <span>Cost-Efficient Dynamic IP Notice — No Redownload Needed!</span>
               </div>
               <p className="text-xs text-ro-text-secondary leading-relaxed">
-                If the server IP updates in the future, you <strong className="text-white">DO NOT</strong> need to redownload the client. Simply open <code className="text-amber-300 font-mono">Ragnarok-Configured-Client\data\clientinfo.xml</code> in Notepad, change <code className="text-sky-300 font-mono">&lt;address&gt;32.236.113.36&lt;/address&gt;</code> to the new server IP, and save!
+                If the server IP updates in the future, you <strong className="text-white">DO NOT</strong> need to redownload the client. Simply open <code className="text-amber-300 font-mono">Ragnarok-Configured-Client\data\clientinfo.xml</code> in Notepad, change <code className="text-sky-300 font-mono">&lt;address&gt;3.107.209.130&lt;/address&gt;</code> to the new server IP, and save!
               </p>
             </div>
           </div>

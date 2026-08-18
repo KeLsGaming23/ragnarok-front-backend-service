@@ -7,7 +7,7 @@ dotenv.config();
 export const SERVER_CONFIG = {
   name: 'KelsGaming RO',
   tagline: 'Your Adventure Begins Here.',
-  publicIp: process.env.RATHENA_PUBLIC_IP || process.env.RATHENA_HOST || '32.236.113.36',
+  publicIp: process.env.RATHENA_PUBLIC_IP || process.env.RATHENA_HOST || '3.107.209.130',
   pingHost: process.env.RATHENA_PING_HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : (process.env.RATHENA_HOST || '127.0.0.1')),
   ports: {
     login: parseInt(process.env.RATHENA_LOGIN_PORT, 10) || 6900,

@@ -104,7 +104,7 @@ export default function RegisterPage() {
               </div>
               <div className="flex justify-between">
                 <span>Server Host:</span>
-                <span className="font-mono text-ro-gold">32.236.113.36:6900</span>
+                <span className="font-mono text-ro-gold">3.107.209.130:6900</span>
               </div>
             </div>
 

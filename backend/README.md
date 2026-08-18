@@ -1,6 +1,6 @@
 # KelsGaming RO - Backend REST API Service
 
-A production-ready Node.js and Express REST API service for **KelsGaming RO**, integrating directly with an AWS EC2 rAthena server (`32.236.113.36`) and MariaDB database.
+A production-ready Node.js and Express REST API service for **KelsGaming RO**, integrating directly with an AWS EC2 rAthena server (`3.107.209.130`) and MariaDB database.
 
 ## Features
 
