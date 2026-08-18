@@ -489,19 +489,50 @@ export default function AdminItemDispatchPage() {
 
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="font-bold text-ro-text-muted uppercase text-[10px] block mb-1">
-                    Attached Zeny ({formatZeny(zenyAmount)})
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-ro-text-muted uppercase text-[10px]">
+                      Attached Zeny
+                    </label>
+                    <span className="font-mono font-bold text-ro-gold text-xs">
+                      {formatZeny(zenyAmount)}
+                    </span>
+                  </div>
                   <input
                     type="number"
                     min={0}
                     max={2000000000}
-                    step={10000}
+                    step={1}
                     value={zenyAmount}
-                    onChange={(e) => setZenyAmount(e.target.value)}
-                    placeholder="0 Zeny..."
+                    onChange={(e) => setZenyAmount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    placeholder="e.g. 100, 50000, 1000000"
                     className="w-full px-3 py-2.5 rounded-xl bg-ro-bg border border-ro-border text-xs text-white focus:outline-none focus:border-ro-gold font-mono"
                   />
+                  {/* Quick Preset Buttons */}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {[
+                      { label: '+100 Z', val: 100 },
+                      { label: '+1,000 Z', val: 1000 },
+                      { label: '+10,000 Z', val: 10000 },
+                      { label: '+100,000 Z', val: 100000 },
+                      { label: '+1,000,000 Z', val: 1000000 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.val}
+                        type="button"
+                        onClick={() => setZenyAmount(prev => (parseInt(prev, 10) || 0) + preset.val)}
+                        className="px-2 py-0.5 rounded-lg bg-ro-bg hover:bg-amber-950/40 border border-ro-border hover:border-amber-500/40 text-[10px] text-amber-300 font-mono transition-colors"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setZenyAmount(0)}
+                      className="px-2 py-0.5 rounded-lg bg-ro-bg hover:bg-red-950/40 border border-ro-border hover:border-red-500/40 text-[10px] text-red-400 font-mono transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
 
                 {deliveryMethod === 'mail' && (
