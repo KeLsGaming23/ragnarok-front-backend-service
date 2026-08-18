@@ -1,8 +1,5 @@
-/**
- * Admin Player Accounts Management Page
- * Master explorer for all accounts with multi-search, GM promotion, ban/unban, PIN reset, and IP Alt Detector
- */
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import AdminLayout from '../../components/admin/AdminLayout';
 import {
@@ -26,6 +23,10 @@ import {
 } from 'lucide-react';
 
 export default function AdminAccountsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialState = searchParams.get('state') || '';
+  const initialGm = searchParams.get('gm') || '';
+
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,8 +34,8 @@ export default function AdminAccountsPage() {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [stateFilter, setStateFilter] = useState('');
-  const [gmFilter, setGmFilter] = useState('');
+  const [stateFilter, setStateFilter] = useState(initialState);
+  const [gmFilter, setGmFilter] = useState(initialGm);
 
   // Modals & Action States
   const [altModalIp, setAltModalIp] = useState(null);
@@ -244,6 +245,52 @@ export default function AdminAccountsPage() {
                 <option value="99">Administrators (99)</option>
               </select>
             </div>
+          </div>
+
+          {/* Quick Filter Pill Buttons */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-ro-border/60">
+            <button
+              onClick={() => { setStateFilter(''); setGmFilter(''); setSearchParams({}); }}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                stateFilter === '' && gmFilter === ''
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                  : 'bg-ro-bg text-ro-text-muted hover:text-white border border-ro-border'
+              }`}
+            >
+              All Accounts
+            </button>
+            <button
+              onClick={() => { setStateFilter('5'); setGmFilter(''); setSearchParams({ state: '5' }); }}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                stateFilter === '5'
+                  ? 'bg-red-950 text-red-300 border border-red-500/40 shadow-sm'
+                  : 'bg-ro-bg text-ro-text-muted hover:text-red-400 border border-ro-border'
+              }`}
+            >
+              <Ban className="w-3 h-3 text-red-400" />
+              <span>🚫 Banned Accounts Only</span>
+            </button>
+            <button
+              onClick={() => { setStateFilter('0'); setGmFilter(''); setSearchParams({ state: '0' }); }}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                stateFilter === '0'
+                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                  : 'bg-ro-bg text-ro-text-muted hover:text-emerald-300 border border-ro-border'
+              }`}
+            >
+              Active Only
+            </button>
+            <button
+              onClick={() => { setGmFilter('1'); setStateFilter(''); setSearchParams({ gm: '1' }); }}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                gmFilter === '1' || gmFilter === '99'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                  : 'bg-ro-bg text-ro-text-muted hover:text-amber-300 border border-ro-border'
+              }`}
+            >
+              <Crown className="w-3 h-3 text-ro-gold" />
+              <span>Staff & Admins</span>
+            </button>
           </div>
         </div>
 

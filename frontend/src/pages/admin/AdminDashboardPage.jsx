@@ -135,117 +135,138 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Card 2: TOTAL ACCOUNTS */}
-            <div className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl">
+            <div
+              onClick={() => navigate('/admin/accounts')}
+              className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card hover:border-amber-500/80 transition-all cursor-pointer group shadow-xl relative overflow-hidden"
+            >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted group-hover:text-amber-300 transition-colors">
                   TOTAL ACCOUNTS
                 </span>
-                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-ro-gold">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-ro-gold group-hover:scale-110 transition-transform">
                   <UserSquare2 className="w-5 h-5" />
                 </div>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="font-cinzel text-4xl font-black text-white">
+                <span className="font-cinzel text-4xl font-black text-white group-hover:text-amber-200 transition-colors">
                   {kpi.totalAccounts.toLocaleString()}
                 </span>
                 <span className="text-xs font-bold text-ro-gold bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/20">
                   {kpi.accountGrowth}
                 </span>
               </div>
-              <div className="mt-4 pt-3 border-t border-ro-border/60 text-xs text-ro-text-muted">
-                <span>Registered in rAthena MariaDB</span>
+              <div className="mt-4 pt-3 border-t border-ro-border/60 flex items-center justify-between text-xs text-ro-text-muted">
+                <span>Click to manage accounts</span>
+                <ChevronRight className="w-3.5 h-3.5 text-ro-gold group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
             {/* Card 3: CHARACTERS */}
-            <div className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl">
+            <div
+              onClick={() => navigate('/admin/characters')}
+              className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card hover:border-sky-500/80 transition-all cursor-pointer group shadow-xl relative overflow-hidden"
+            >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted group-hover:text-sky-300 transition-colors">
                   CHARACTERS
                 </span>
-                <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400">
+                <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 group-hover:scale-110 transition-transform">
                   <Sword className="w-5 h-5" />
                 </div>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="font-cinzel text-4xl font-black text-white">
+                <span className="font-cinzel text-4xl font-black text-white group-hover:text-sky-200 transition-colors">
                   {kpi.totalCharacters.toLocaleString()}
                 </span>
                 <span className="text-xs font-bold text-sky-300 bg-sky-950/60 px-2 py-0.5 rounded-full border border-sky-500/20">
                   Avg Lv {kpi.avgCharLevel}
                 </span>
               </div>
-              <div className="mt-4 pt-3 border-t border-ro-border/60 text-xs text-ro-text-muted">
-                <span>Total created avatars</span>
+              <div className="mt-4 pt-3 border-t border-ro-border/60 flex items-center justify-between text-xs text-ro-text-muted">
+                <span>Click to view character roster</span>
+                <ChevronRight className="w-3.5 h-3.5 text-sky-400 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
             {/* Card 4: SERVER UPTIME */}
-            <div className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl">
+            <div
+              onClick={() => navigate('/admin/server')}
+              className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card hover:border-purple-500/80 transition-all cursor-pointer group shadow-xl relative overflow-hidden"
+            >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted group-hover:text-purple-300 transition-colors">
                   SERVER UPTIME
                 </span>
-                <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 group-hover:scale-110 transition-transform">
                   <Clock className="w-5 h-5" />
                 </div>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="font-cinzel text-4xl font-black text-white">
+                <span className="font-cinzel text-4xl font-black text-white group-hover:text-purple-200 transition-colors">
                   {kpi.serverUptime}
                 </span>
                 <span className="text-xs font-bold text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-500/20">
                   Online
                 </span>
               </div>
-              <div className="mt-4 pt-3 border-t border-ro-border/60 text-xs text-ro-text-muted">
+              <div className="mt-4 pt-3 border-t border-ro-border/60 flex items-center justify-between text-xs text-ro-text-muted">
                 <span>System daemon continuous uptime</span>
+                <ChevronRight className="w-3.5 h-3.5 text-purple-400 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
             {/* Card 5: REPORTS */}
-            <div className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl">
+            <div
+              onClick={() => navigate('/admin/accounts')}
+              className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card hover:border-amber-400/80 transition-all cursor-pointer group shadow-xl relative overflow-hidden"
+            >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted group-hover:text-amber-300 transition-colors">
                   REPORTS
                 </span>
-                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 group-hover:scale-110 transition-transform">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="font-cinzel text-4xl font-black text-white">
+                <span className="font-cinzel text-4xl font-black text-white group-hover:text-amber-200 transition-colors">
                   {kpi.reportsCount}
                 </span>
                 <span className="text-xs font-bold text-amber-300 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/20">
                   ⚠ {kpi.reportsStatus}
                 </span>
               </div>
-              <div className="mt-4 pt-3 border-t border-ro-border/60 text-xs text-ro-text-muted">
+              <div className="mt-4 pt-3 border-t border-ro-border/60 flex items-center justify-between text-xs text-ro-text-muted">
                 <span>Player inquiries & security flags</span>
+                <ChevronRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
 
-            {/* Card 6: BANNED ACCOUNTS */}
-            <div className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl">
+            {/* Card 6: BANNED ACCOUNTS (Direct click to Banned Accounts list) */}
+            <div
+              onClick={() => navigate('/admin/accounts?state=5')}
+              className="ro-card p-6 rounded-2xl border-2 border-red-500/40 bg-gradient-to-b from-ro-surface to-ro-card hover:border-red-400/80 transition-all cursor-pointer group shadow-xl relative overflow-hidden"
+            >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-ro-text-muted">
-                  BANNED
+                <span className="text-xs font-extrabold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
+                  BANNED ACCOUNTS
                 </span>
-                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 group-hover:scale-110 transition-transform">
                   <Ban className="w-5 h-5" />
                 </div>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="font-cinzel text-4xl font-black text-white">
+                <span className="font-cinzel text-4xl font-black text-white group-hover:text-red-300 transition-colors">
                   {kpi.bannedAccounts}
                 </span>
                 <span className="text-xs font-bold text-red-300 bg-red-950/60 px-2 py-0.5 rounded-full border border-red-500/20">
                   Restricted
                 </span>
               </div>
-              <div className="mt-4 pt-3 border-t border-ro-border/60 text-xs text-ro-text-muted">
-                <span>Suspended / State 5 accounts</span>
+              <div className="mt-4 pt-3 border-t border-ro-border/60 flex items-center justify-between text-xs text-ro-text-muted">
+                <span>Click to view banned accounts</span>
+                <ChevronRight className="w-3.5 h-3.5 text-red-400 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </div>
