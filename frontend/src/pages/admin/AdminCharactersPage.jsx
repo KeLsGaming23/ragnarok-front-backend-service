@@ -21,9 +21,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   Globe,
-  Users
+  Users,
+  Clock
 } from 'lucide-react';
-import { formatZeny } from '../../utils/formatters';
+import { formatZeny, formatDate, formatTimeAgo } from '../../utils/formatters';
 
 export default function AdminCharactersPage() {
   const [characters, setCharacters] = useState([]);
@@ -221,6 +222,7 @@ export default function AdminCharactersPage() {
                     <th className="py-3.5 px-4">Location</th>
                     <th className="py-3.5 px-4">Zeny</th>
                     <th className="py-3.5 px-4">Account</th>
+                    <th className="py-3.5 px-4">Last Login</th>
                     <th className="py-3.5 px-6 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -284,6 +286,24 @@ export default function AdminCharactersPage() {
                       {/* Account Username */}
                       <td className="py-4 px-4 font-mono text-gray-300">
                         {char.account_username}
+                      </td>
+
+                      {/* Last Login / Activity */}
+                      <td className="py-4 px-4 font-mono">
+                        {char.online === 1 ? (
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/40 animate-pulse inline-flex items-center gap-1">
+                            <span>🟢 In-Game Now</span>
+                          </span>
+                        ) : (
+                          <div>
+                            <span className="text-white text-xs font-bold block" title={formatDate(char.last_login)}>
+                              {formatTimeAgo(char.last_login)}
+                            </span>
+                            <span className="text-ro-text-muted text-[10px] block">
+                              {formatDate(char.last_login)}
+                            </span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Actions */}

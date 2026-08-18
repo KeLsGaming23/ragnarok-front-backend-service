@@ -57,7 +57,7 @@ export class AdminRepository {
         c.char_id, c.account_id, c.name, c.class, c.base_level, c.job_level,
         c.zeny, c.hp, c.max_hp, c.sp, c.max_sp,
         c.last_map, c.last_x, c.last_y, c.guild_id, c.online,
-        l.userid AS account_username, l.last_ip, l.sex
+        l.userid AS account_username, l.last_ip, l.sex, l.lastlogin AS last_login
       FROM \`char\` c
       LEFT JOIN \`login\` l ON c.account_id = l.account_id
       WHERE 1=1

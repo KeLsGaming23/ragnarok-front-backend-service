@@ -218,7 +218,7 @@ export default function AdminItemDispatchPage() {
                 <span>1. Select Delivery Channel</span>
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Channel 1: In-Game Mail */}
                 <button
                   type="button"
@@ -238,26 +238,7 @@ export default function AdminItemDispatchPage() {
                   </p>
                 </button>
 
-                {/* Channel 2: Direct Backpack */}
-                <button
-                  type="button"
-                  onClick={() => setDeliveryMethod('inventory')}
-                  className={`p-4 rounded-xl border text-left transition-all ${
-                    deliveryMethod === 'inventory'
-                      ? 'bg-amber-500/20 border-amber-500 text-white shadow-lg'
-                      : 'bg-ro-bg border-ro-border text-ro-text-muted hover:border-ro-border/80'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Sword className="w-4 h-4 text-ro-gold" />
-                    <span className="text-xs font-bold text-white">Direct Backpack</span>
-                  </div>
-                  <p className="text-[10px] text-ro-text-secondary leading-relaxed">
-                    Directly injects into character bag.
-                  </p>
-                </button>
-
-                {/* Channel 3: Kafra Storage */}
+                {/* Channel 2: Kafra Storage */}
                 <button
                   type="button"
                   onClick={() => setDeliveryMethod('storage')}

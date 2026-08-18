@@ -26,7 +26,7 @@ import {
   Clock,
   Compass
 } from 'lucide-react';
-import { formatZeny } from '../../utils/formatters';
+import { formatZeny, formatDate, formatTimeAgo } from '../../utils/formatters';
 import ItemSprite from '../common/ItemSprite';
 
 export default function CharacterInspectorModal({ charId, onClose, onActionSuccess }) {
@@ -338,9 +338,15 @@ export default function CharacterInspectorModal({ charId, onClose, onActionSucce
                           <span className="text-ro-text-muted">Registered Email:</span>
                           <span className="text-gray-300">{account?.email || 'N/A'}</span>
                         </div>
-                        <div className="flex justify-between py-1">
+                        <div className="flex justify-between py-1 border-b border-ro-border/60">
                           <span className="text-ro-text-muted">Last Login IP:</span>
                           <code className="text-amber-300 font-mono">{account?.last_ip || '127.0.0.1'}</code>
+                        </div>
+                        <div className="flex justify-between py-1">
+                          <span className="text-ro-text-muted">Last Activity / Login:</span>
+                          <span className="text-white font-mono font-semibold" title={formatDate(account?.lastlogin || character?.last_login)}>
+                            {character?.online === 1 ? '🟢 Online Now' : `${formatTimeAgo(account?.lastlogin || character?.last_login)} (${formatDate(account?.lastlogin || character?.last_login)})`}
+                          </span>
                         </div>
                       </div>
                     </div>
