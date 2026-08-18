@@ -281,4 +281,74 @@ export class AdminController {
       next(err);
     }
   }
+
+  /**
+   * GET /api/admin/items/database
+   */
+  static async getItemDatabase(req, res, next) {
+    try {
+      const { query, category, subType, customOnly, page, limit, sortBy, sortOrder } = req.query;
+      const data = AdminService.getItemDatabase({
+        query,
+        category,
+        subType,
+        customOnly: customOnly === 'true',
+        page: parseInt(page, 10) || 1,
+        limit: parseInt(limit, 10) || 40,
+        sortBy,
+        sortOrder
+      });
+      sendSuccess(res, 'Item database retrieved', data);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/admin/items/details/:id
+   */
+  static async getItemDetails(req, res, next) {
+    try {
+      const data = AdminService.getItemDetails(req.params.id);
+      sendSuccess(res, 'Item details retrieved', data);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/admin/items/custom
+   */
+  static async createOrUpdateCustomItem(req, res, next) {
+    try {
+      const item = AdminService.createOrUpdateCustomItem(req.body, req.user);
+      sendSuccess(res, `Custom item "${item.name}" saved successfully`, item);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * DELETE /api/admin/items/custom/:id
+   */
+  static async deleteCustomItem(req, res, next) {
+    try {
+      const result = AdminService.removeCustomItem(req.params.id, req.user);
+      sendSuccess(res, `Custom item #${req.params.id} deleted successfully`, result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/admin/items/export-yaml
+   */
+  static async exportCustomItemsYaml(req, res, next) {
+    try {
+      const yaml = AdminService.exportCustomItemsYaml();
+      sendSuccess(res, 'Custom items YAML exported', { yaml });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

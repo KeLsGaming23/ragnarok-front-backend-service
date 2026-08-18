@@ -19,7 +19,8 @@ import {
   LogOut,
   ArrowLeft,
   Crown,
-  Sparkles
+  Sparkles,
+  Database
 } from 'lucide-react';
 
 export default function AdminSidebar({ isOpen, onClose }) {
@@ -38,6 +39,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
     { name: 'Characters', path: '/admin/characters', icon: Sword },
     { name: 'Guilds', path: '/admin/guilds', icon: Shield },
     { name: 'Server', path: '/admin/server', icon: Server },
+    { name: 'Item Database', path: '/admin/items', icon: Database },
     { name: 'Item Dispatch', path: '/admin/dispatch', icon: Gift },
     { name: 'Logs', path: '/admin/logs', icon: FileText },
     { name: 'Settings', path: '/admin/settings', icon: Settings },

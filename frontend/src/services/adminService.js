@@ -170,5 +170,49 @@ export const adminService = {
   dispatchItem: async (payload = {}) => {
     const res = await api.post('/api/admin/dispatch/item', payload);
     return res?.data ?? res;
+  },
+
+  /* ========================================================================= */
+  /* PHASE 5: ITEM DATABASE ENCYCLOPEDIA & CUSTOM ITEM STUDIO                 */
+  /* ========================================================================= */
+
+  /**
+   * Query item encyclopedia with category, subType, search, and pagination
+   */
+  getItemDatabase: async (params = {}) => {
+    const res = await api.get('/api/admin/items/database', { params });
+    return res?.data ?? res;
+  },
+
+  /**
+   * Get single item deep details
+   */
+  getItemDetails: async (itemId) => {
+    const res = await api.get(`/api/admin/items/details/${itemId}`);
+    return res?.data ?? res;
+  },
+
+  /**
+   * Create or update a custom item
+   */
+  saveCustomItem: async (itemData) => {
+    const res = await api.post('/api/admin/items/custom', itemData);
+    return res?.data ?? res;
+  },
+
+  /**
+   * Delete a custom item
+   */
+  deleteCustomItem: async (itemId) => {
+    const res = await api.delete(`/api/admin/items/custom/${itemId}`);
+    return res?.data ?? res;
+  },
+
+  /**
+   * Export all custom items as rAthena item_db2.yml
+   */
+  exportCustomItemsYaml: async () => {
+    const res = await api.get('/api/admin/items/export-yaml');
+    return res?.data ?? res;
   }
 };

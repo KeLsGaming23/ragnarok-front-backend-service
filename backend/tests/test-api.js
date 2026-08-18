@@ -403,6 +403,55 @@ async function runTests() {
     failed++;
   }
 
+  // 12. Testing Phase 5 Item Database Encyclopedia & Custom Item Studio
+  console.log('\n[12] Testing Phase 5 Item Database Encyclopedia & Custom Item Studio');
+  try {
+    // Test 1: Query entire item database
+    const dbRes = AdminService.getItemDatabase({ category: 'all', page: 1, limit: 20 });
+    assert(Array.isArray(dbRes.items), 'Item database returns items array');
+    assert(dbRes.totalItems >= 29000, 'Database contains 29,000+ authentic items');
+    assert(dbRes.categoryCounts.all >= 29000, 'Category counts returned');
+
+    // Test 2: Category Filter for Cards
+    const cardRes = AdminService.getItemDatabase({ category: 'card', page: 1, limit: 10 });
+    assert(cardRes.items.every(it => it.type === 'card'), 'Category card filter returns only cards');
+
+    // Test 3: Search Query with Script
+    const baphomet = AdminService.getItemDetails(4147);
+    assert(baphomet.name === 'Baphomet Card', 'Baphomet card resolved');
+    assert(baphomet.script && baphomet.script.includes('bonus'), 'Baphomet item bonus script attached');
+
+    // Test 4: Create Custom Item
+    const customItem = AdminService.createOrUpdateCustomItem({
+      id: 30001,
+      name: 'Kels Dragon Slayer Wings',
+      aegisName: 'Kels_Dragon_Wings',
+      type: 'armor',
+      subType: 'Garment',
+      defense: 25,
+      slots: 2,
+      refineable: true,
+      script: 'bonus bAllStats,10; bonus bMaxHPrate,20;',
+      locations: ['Garment']
+    }, { username: 'AdminKels' });
+    assert(customItem.itemId === 30001 && customItem.isCustom === true, 'Successfully created custom item');
+
+    // Test 5: Verify Custom Item in Search
+    const searchCustom = AdminService.getItemDatabase({ query: 'Dragon Slayer Wings' });
+    assert(searchCustom.items.some(it => it.itemId === 30001), 'Custom item indexed and searchable');
+
+    // Test 6: Export rAthena item_db2.yml
+    const yamlExport = AdminService.exportCustomItemsYaml();
+    assert(yamlExport.includes('ITEM_DB') && yamlExport.includes('30001'), 'Exported valid rAthena item_db2.yml');
+
+    // Test 7: Delete Custom Item
+    const delRes = AdminService.removeCustomItem(30001, { username: 'AdminKels' });
+    assert(delRes.success === true, 'Successfully deleted custom item');
+  } catch (err) {
+    console.error('Phase 5 test suite error:', err);
+    failed++;
+  }
+
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   process.exit(failed > 0 ? 1 : 0);
 }

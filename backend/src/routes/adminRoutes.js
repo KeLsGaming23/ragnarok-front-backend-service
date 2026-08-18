@@ -48,4 +48,11 @@ router.get('/castles', AdminController.getCastles);
 router.get('/items/search', AdminController.searchItems);
 router.post('/dispatch/item', AdminController.dispatchItem);
 
+// Phase 5: Item Database Encyclopedia & Custom Item Studio
+router.get('/items/database', AdminController.getItemDatabase);
+router.get('/items/details/:id', AdminController.getItemDetails);
+router.post('/items/custom', AdminController.createOrUpdateCustomItem);
+router.delete('/items/custom/:id', AdminController.deleteCustomItem);
+router.get('/items/export-yaml', AdminController.exportCustomItemsYaml);
+
 export default router;

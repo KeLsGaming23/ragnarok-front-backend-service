@@ -2,7 +2,16 @@ import { AdminRepository } from '../repositories/adminRepository.js';
 import { ServerStatusService } from './serverStatusService.js';
 import { SERVER_CONFIG } from '../config/serverConfig.js';
 import { getJobInfo } from '../utils/classNames.js';
-import { searchKnownItems, getKnownCards, resolveItemInfo, formatItemTitle } from '../utils/itemDb.js';
+import { 
+  searchKnownItems, 
+  getKnownCards, 
+  resolveItemInfo, 
+  formatItemTitle,
+  queryItemDatabase,
+  saveCustomItem,
+  deleteCustomItem,
+  exportItemDb2Yaml
+} from '../utils/itemDb.js';
 
 // In-memory admin action audit log buffer
 const adminAuditLogs = [
@@ -568,6 +577,55 @@ export class AdminService {
         message: `In-game mail successfully delivered to ${targetName}'s RodEx mailbox!`
       };
     }
+  }
+
+  /**
+   * Query Item Database with Category Filter, Search, and Pagination
+   */
+  static getItemDatabase(params) {
+    return queryItemDatabase(params);
+  }
+
+  /**
+   * Get single item complete deep details (stats, script, locations, jobs)
+   */
+  static getItemDetails(itemId) {
+    return resolveItemInfo(itemId);
+  }
+
+  /**
+   * Create or Save a Custom Item
+   */
+  static createOrUpdateCustomItem(itemData, adminUser) {
+    const saved = saveCustomItem(itemData);
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'CUSTOM_ITEM_SAVE',
+      target: `Item #${saved.itemId}`,
+      details: `Saved custom item "${saved.name}" (${saved.type}) with ID #${saved.itemId}.`
+    });
+    return saved;
+  }
+
+  /**
+   * Delete a Custom Item
+   */
+  static removeCustomItem(itemId, adminUser) {
+    const res = deleteCustomItem(itemId);
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'CUSTOM_ITEM_DELETE',
+      target: `Item #${itemId}`,
+      details: `Deleted custom item #${itemId} from server database.`
+    });
+    return res;
+  }
+
+  /**
+   * Export all Custom Items as rAthena item_db2.yml
+   */
+  static exportCustomItemsYaml() {
+    return exportItemDb2Yaml();
   }
 
   /**
