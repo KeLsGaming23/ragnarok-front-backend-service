@@ -625,81 +625,72 @@ export class AdminRepository {
       // fallback
     }
 
-    // 2. Try classic schema with inline item columns first or modern mail + attachments
+    // 2. Try modern schema with separate attachments table first (standard rAthena)
     try {
-      // Try classic rAthena single-table mail schema
-      const classicMailSql = `
-        INSERT INTO \`mail\` (
-          send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type,
-          nameid, amount, refine, attribute, identify, card0, card1, card2, card3, unique_id
-        ) VALUES (?, 0, ?, ?, ?, ?, ?, 0, ?, 0, ?, ?, ?, 0, 1, ?, ?, ?, ?, 0)
+      const mailSql = `
+        INSERT INTO \`mail\`
+          (send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type)
+        VALUES
+          (?, 0, ?, ?, ?, ?, ?, 0, ?, 0)
       `;
-      const classicParams = [
-        senderName,
-        destName,
-        parsedRecipient,
-        mailTitle,
-        mailBody,
-        timeNow,
-        parsedZeny,
-        parsedNameId,
-        parsedAmount,
-        parsedRefine,
-        parseInt(card0, 10) || 0,
-        parseInt(card1, 10) || 0,
-        parseInt(card2, 10) || 0,
-        parseInt(card3, 10) || 0
-      ];
+      const mailParams = [senderName, destName, parsedRecipient, mailTitle, mailBody, timeNow, parsedZeny];
+      const mailResult = await executeQuery(mailSql, mailParams);
+      const mailId = mailResult?.insertId || Date.now();
 
-      const res = await executeQuery(classicMailSql, classicParams);
-      return { success: true, mailId: res?.insertId || Date.now() };
-    } catch (classicErr) {
-      console.warn('[AdminRepository] Classic mail insert failed, trying separate attachments schema:', classicErr.message);
-
-      // Try modern separate tables schema (mail + mail_attachments)
-      try {
-        const mailSql = `
-          INSERT INTO \`mail\`
-            (send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type)
+      if (parsedNameId > 0 && parsedAmount > 0) {
+        const attachSql = `
+          INSERT INTO \`mail_attachments\`
+            (id, \`index\`, nameid, amount, refine, attribute, identify, card0, card1, card2, card3, unique_id)
           VALUES
-            (?, 0, ?, ?, ?, ?, ?, 0, ?, 0)
+            (?, 0, ?, ?, ?, 0, 1, ?, ?, ?, ?, 0)
         `;
-        const mailParams = [senderName, destName, parsedRecipient, mailTitle, mailBody, timeNow, parsedZeny];
-        const mailResult = await executeQuery(mailSql, mailParams);
-        const mailId = mailResult?.insertId || Date.now();
+        const attachParams = [
+          mailId,
+          parsedNameId,
+          parsedAmount,
+          parsedRefine,
+          parseInt(card0, 10) || 0,
+          parseInt(card1, 10) || 0,
+          parseInt(card2, 10) || 0,
+          parseInt(card3, 10) || 0
+        ];
+        await executeQuery(attachSql, attachParams);
+      }
 
-        if (parsedNameId > 0 && parsedAmount > 0) {
-          const attachSql = `
-            INSERT INTO \`mail_attachments\`
-              (id, index_id, nameid, amount, refine, card0, card1, card2, card3)
-            VALUES
-              (?, 0, ?, ?, ?, ?, ?, ?, ?)
-          `;
-          const attachParams = [
-            mailId, parsedNameId, parsedAmount, parsedRefine,
-            parseInt(card0, 10) || 0, parseInt(card1, 10) || 0,
-            parseInt(card2, 10) || 0, parseInt(card3, 10) || 0
-          ];
-          await executeQuery(attachSql, attachParams).catch(() => {});
-        }
+      return { success: true, mailId };
+    } catch (modernErr) {
+      console.warn('[AdminRepository] Modern mail insert failed, trying classic single-table schema:', modernErr.message);
 
-        return { success: true, mailId };
-      } catch (nestedErr) {
-        console.error('[AdminRepository] Mail dispatch error, falling back to direct backpack delivery:', nestedErr.message);
-        // Fallback to direct backpack injection so player still gets the item & zeny!
-        if (parsedNameId > 0 && parsedAmount > 0) {
-          await this.dispatchItemToBackpack({
-            charId: parsedRecipient,
-            nameid: parsedNameId,
-            amount: parsedAmount,
-            refine: parsedRefine,
-            card0, card1, card2, card3
-          });
-        }
-        if (parsedZeny > 0) {
-          await this.dispatchZeny({ charId: parsedRecipient, amount: parsedZeny });
-        }
-        return { success: true, mailId: Date.now(), fallbackDelivered: true };
+      // 3. Fallback to classic rAthena single-table mail schema
+      try {
+        const classicMailSql = `
+          INSERT INTO \`mail\` (
+            send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type,
+            nameid, amount, refine, attribute, identify, card0, card1, card2, card3, unique_id
+          ) VALUES (?, 0, ?, ?, ?, ?, ?, 0, ?, 0, ?, ?, ?, 0, 1, ?, ?, ?, ?, 0)
+        `;
+        const classicParams = [
+          senderName,
+          destName,
+          parsedRecipient,
+          mailTitle,
+          mailBody,
+          timeNow,
+          parsedZeny,
+          parsedNameId,
+          parsedAmount,
+          parsedRefine,
+          parseInt(card0, 10) || 0,
+          parseInt(card1, 10) || 0,
+          parseInt(card2, 10) || 0,
+          parseInt(card3, 10) || 0
+        ];
+
+        const res = await executeQuery(classicMailSql, classicParams);
+        return { success: true, mailId: res?.insertId || Date.now() };
+      } catch (fallbackErr) {
+        console.error('[AdminRepository] All mail schemas failed:', fallbackErr.message);
+        throw fallbackErr;
       }
     }
   }
