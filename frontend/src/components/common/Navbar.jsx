@@ -21,7 +21,8 @@ import {
   Crown,
   Database,
   Gift,
-  LayoutDashboard
+  LayoutDashboard,
+  Hammer
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -91,6 +92,9 @@ export default function Navbar() {
             </NavLink>
             <NavLink to="/database/items" className={navLinkClass}>
               Item Database
+            </NavLink>
+            <NavLink to="/build-studio" className={navLinkClass}>
+              Build Studio
             </NavLink>
             <NavLink to="/server-info" className={navLinkClass}>
               Server Info
@@ -258,6 +262,14 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex items-center gap-3"><Database className="w-4 h-4 text-ro-gold" /> Item Database</span>
+              <ChevronRight className="w-4 h-4 text-ro-text-muted" />
+            </Link>
+            <Link
+              to="/build-studio"
+              className="flex items-center justify-between px-4 py-3 rounded-xl text-ro-text-primary hover:bg-ro-card text-xs font-bold"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="flex items-center gap-3"><Hammer className="w-4 h-4 text-ro-gold" /> Build Studio</span>
               <ChevronRight className="w-4 h-4 text-ro-text-muted" />
             </Link>
             <Link
