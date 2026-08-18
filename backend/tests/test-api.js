@@ -261,6 +261,48 @@ async function runTests() {
     failed++;
   }
 
+  // 9. Test Phase 2 Live Online Players, Deep Character Inspector & Moderation
+  console.log('\n[9] Testing Phase 2 Live Online Players, Deep Character Inspector & Moderation');
+  try {
+    // Test 1: Fetch Online Players
+    const onlineData = await AdminService.getOnlinePlayers();
+    assert(Array.isArray(onlineData.players), 'Online players returned as array');
+    assert(onlineData.players.length >= 1, 'Found at least 1 online character in mock store');
+    const onlineKnight = onlineData.players.find(p => p.name === 'KelsLordKnight');
+    assert(onlineKnight !== undefined, 'Found KelsLordKnight in online players');
+    assert(onlineKnight.className === 'Lord Knight', 'KelsLordKnight job resolved to Lord Knight');
+
+    // Test 2: Deep Character Inspector for KelsLordKnight (char_id: 150001)
+    const inspection = await AdminService.inspectCharacter(150001);
+    assert(inspection.character.name === 'KelsLordKnight', 'Inspector loaded KelsLordKnight');
+    assert(inspection.character.className === 'Lord Knight', 'Job class name attached');
+    assert(inspection.account.userid === 'testplayer', 'Account data linked to inspection');
+    assert(Array.isArray(inspection.inventory), 'Backpack inventory is an array');
+    assert(inspection.inventory.length > 0, 'Backpack contains items');
+    assert(Array.isArray(inspection.storage), 'Kafra storage is an array');
+    assert(Array.isArray(inspection.activityLogs.pickLogs), 'Activity picklogs is an array');
+    assert(Array.isArray(inspection.activityLogs.zenyLogs), 'Activity zenylogs is an array');
+
+    // Test 3: Unstuck Character Action
+    const unstuckRes = await AdminService.unstuckCharacter(150001, { username: 'AdminKels' });
+    assert(unstuckRes.success === true, 'Successfully unstuck character coordinates');
+
+    // Test 4: Ban Account Action
+    const banRes = await AdminService.banAccount(2000001, { durationHours: 24, reason: 'Test Ban' }, { username: 'AdminKels' });
+    assert(banRes.success === true, 'Successfully applied temporary ban');
+
+    // Test 5: Unban Account Action
+    const unbanRes = await AdminService.unbanAccount(2000001, { username: 'AdminKels' });
+    assert(unbanRes.success === true, 'Successfully unbanned account');
+
+    // Test 6: Reset Character Points Action
+    const resetRes = await AdminService.resetCharacterPoints(150001, { resetStats: true, resetSkills: true }, { username: 'AdminKels' });
+    assert(resetRes.success === true, 'Successfully reset character points');
+  } catch (err) {
+    console.error('Phase 2 test suite error:', err);
+    failed++;
+  }
+
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   process.exit(failed > 0 ? 1 : 0);
 }

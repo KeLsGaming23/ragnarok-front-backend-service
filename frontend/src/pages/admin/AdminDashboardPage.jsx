@@ -3,8 +3,10 @@
  * Realizes the complete wireframe design with 6 KPI cards, server diagnostics, and activity graph
  */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
 import AdminLayout from '../../components/admin/AdminLayout';
+import CharacterInspectorModal from '../../components/admin/CharacterInspectorModal';
 import {
   Users,
   UserSquare2,
@@ -34,7 +36,8 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [showOnlineModal, setShowOnlineModal] = useState(false);
+  const [inspectCharId, setInspectCharId] = useState(null);
+  const navigate = useNavigate();
 
   const fetchStats = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -104,7 +107,7 @@ export default function AdminDashboardPage() {
             
             {/* Card 1: PLAYERS ONLINE (Clickable Interactive Trigger) */}
             <div
-              onClick={() => setShowOnlineModal(true)}
+              onClick={() => navigate('/admin/players')}
               className="ro-card p-6 rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-b from-ro-surface to-ro-card hover:border-emerald-400/80 transition-all cursor-pointer group shadow-xl relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-4">
@@ -398,58 +401,13 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 4. INTERACTIVE PLAYERS ONLINE MODAL (Interactive Inspector Foundation)    */}
-      {/* ========================================================================= */}
-      {showOnlineModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="ro-card p-6 sm:p-8 rounded-2xl border-2 border-emerald-500/50 bg-ro-surface max-w-2xl w-full shadow-2xl space-y-6 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="font-cinzel text-xl font-bold text-white">
-                    Live Online Players Inspector
-                  </h3>
-                  <p className="text-xs text-ro-text-secondary">
-                    {kpi.onlinePlayers} character(s) currently active in Midgard
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowOnlineModal(false)}
-                className="p-2 rounded-lg hover:bg-ro-bg text-ro-text-muted hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-4 rounded-xl bg-ro-bg/80 border border-ro-border text-sm space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-ro-border/60">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span className="font-bold text-white">KelsLordKnight</span>
-                  <span className="text-xs text-ro-gold">(Lord Knight Lv 99/70)</span>
-                </div>
-                <span className="text-xs font-mono text-ro-text-muted">prontera (155, 180)</span>
-              </div>
-              <p className="text-xs text-ro-text-secondary leading-relaxed pt-2">
-                ✨ <strong>Phase 3 Feature Preview</strong>: Full deep character inspector with real-time inventory, slotted cards, Kafra storage, activity logs (`picklog`/`zenylog`), and 1-click unstuck/ban controls will be available in Phase 3.
-              </p>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowOnlineModal(false)}
-                className="btn-gold !py-2 !px-6 text-sm font-bold"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Deep Character Inspector Modal */}
+      {inspectCharId && (
+        <CharacterInspectorModal
+          charId={inspectCharId}
+          onClose={() => setInspectCharId(null)}
+          onActionSuccess={() => fetchStats(false)}
+        />
       )}
     </AdminLayout>
   );

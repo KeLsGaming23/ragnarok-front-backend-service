@@ -233,21 +233,21 @@ function executeMockQuery(sql, params) {
   const normalizedSql = sql.trim().toLowerCase();
 
   // SELECT login WHERE userid = ?
-  if (normalizedSql.includes('select') && normalizedSql.includes('login') && normalizedSql.includes('userid =')) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login')) && (normalizedSql.includes('where userid =') || normalizedSql.includes('where `userid` =') || normalizedSql.includes('where lower(userid) ='))) {
     const userid = params[0]?.toLowerCase();
     const found = mockStore.accounts.filter(a => a.userid.toLowerCase() === userid);
     return found;
   }
 
   // SELECT login WHERE email = ?
-  if (normalizedSql.includes('select') && normalizedSql.includes('login') && normalizedSql.includes('email =')) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login')) && (normalizedSql.includes('where email =') || normalizedSql.includes('where `email` =') || normalizedSql.includes('where lower(email) ='))) {
     const email = params[0]?.toLowerCase();
     const found = mockStore.accounts.filter(a => a.email.toLowerCase() === email);
     return found;
   }
 
   // SELECT login WHERE account_id = ?
-  if (normalizedSql.includes('select') && normalizedSql.includes('login') && normalizedSql.includes('account_id =')) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login')) && (normalizedSql.includes('where account_id =') || normalizedSql.includes('where `account_id` =') || normalizedSql.includes('where l.account_id ='))) {
     const accountId = parseInt(params[0], 10);
     const found = mockStore.accounts.filter(a => a.account_id === accountId);
     return found;
@@ -307,7 +307,7 @@ function executeMockQuery(sql, params) {
   }
 
   // SELECT FROM char WHERE account_id = ?
-  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('account_id =')) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && (normalizedSql.includes('where account_id =') || normalizedSql.includes('where `account_id` =') || normalizedSql.includes('where c.account_id ='))) {
     const accountId = parseInt(params[0], 10);
     const found = mockStore.chars.filter(c => c.account_id === accountId);
     return found;
@@ -320,8 +320,8 @@ function executeMockQuery(sql, params) {
     return found;
   }
 
-  // SELECT FROM char WHERE char_id = ?
-  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('char_id = ?')) {
+  // SELECT FROM char WHERE char_id = ? or c.char_id = ?
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && (normalizedSql.includes('char_id = ?') || normalizedSql.includes('c.char_id = ?'))) {
     const charId = parseInt(params[0], 10);
     const found = mockStore.chars.filter(c => c.char_id === charId);
     return found;
@@ -376,6 +376,73 @@ function executeMockQuery(sql, params) {
   if (normalizedSql.includes('insert into mail_attachments') || normalizedSql.includes('insert into `mail_attachments`')) {
     mockStore.mail_attachments.push({ params });
     return { affectedRows: 1 };
+  }
+
+  // SELECT online characters with join
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char` c') || normalizedSql.includes('from char c')) && normalizedSql.includes('c.online = 1')) {
+    return mockStore.chars.filter(c => c.online === 1).map(c => {
+      const acc = mockStore.accounts.find(a => a.account_id === c.account_id) || {};
+      return {
+        ...c,
+        account_username: acc.userid || 'testplayer',
+        last_ip: acc.last_ip || '127.0.0.1',
+        sex: acc.sex || 'M'
+      };
+    });
+  }
+
+  // SELECT FROM storage WHERE account_id = ?
+  if (normalizedSql.includes('select') && normalizedSql.includes('storage') && normalizedSql.includes('account_id = ?')) {
+    const accId = parseInt(params[0], 10);
+    return [
+      {
+        id: 8001,
+        account_id: accId,
+        nameid: 607, // Yggdrasil Berry
+        amount: 25,
+        equip: 0,
+        refine: 0,
+        card0: 0, card1: 0, card2: 0, card3: 0
+      },
+      {
+        id: 8002,
+        account_id: accId,
+        nameid: 2357, // Valkyrian Armor
+        amount: 1,
+        equip: 0,
+        refine: 7,
+        card0: 4006, card1: 0, card2: 0, card3: 0
+      }
+    ];
+  }
+
+  // UPDATE char SET last_map = 'prontera'... (Unstuck)
+  if (normalizedSql.includes('update `char`') || normalizedSql.includes('update char')) {
+    if (normalizedSql.includes('last_map = \'prontera\'') || normalizedSql.includes('last_map = ?') || normalizedSql.includes('status_point')) {
+      const charId = parseInt(params[params.length - 1], 10);
+      const ch = mockStore.chars.find(c => c.char_id === charId);
+      if (ch) {
+        ch.last_map = 'prontera';
+        ch.last_x = 155;
+        ch.last_y = 180;
+        ch.save_map = 'prontera';
+        ch.save_x = 155;
+        ch.save_y = 180;
+        return { affectedRows: 1, changedRows: 1 };
+      }
+    }
+    return { affectedRows: 1, changedRows: 1 };
+  }
+
+  // UPDATE login SET state = ? (Ban / Unban)
+  if ((normalizedSql.includes('update `login`') || normalizedSql.includes('update login')) && normalizedSql.includes('state =')) {
+    const accId = parseInt(params[params.length - 1], 10);
+    const acc = mockStore.accounts.find(a => a.account_id === accId);
+    if (acc) {
+      acc.state = normalizedSql.includes('state = 0') ? 0 : 5;
+      return { affectedRows: 1, changedRows: 1 };
+    }
+    return { affectedRows: 1, changedRows: 1 };
   }
 
   // SELECT COUNT(*) FROM char WHERE online = 1

@@ -18,6 +18,7 @@ import DownloadsPage from './pages/DownloadsPage';
 import ServerInfoPage from './pages/ServerInfoPage';
 import NotFoundPage from './pages/NotFoundPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminPlayersPage from './pages/admin/AdminPlayersPage';
 
 function AppContent() {
   const location = useLocation();
@@ -54,6 +55,14 @@ function AppContent() {
             element={
               <AdminRoute>
                 <AdminDashboardPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/players"
+            element={
+              <AdminRoute>
+                <AdminPlayersPage />
               </AdminRoute>
             }
           />

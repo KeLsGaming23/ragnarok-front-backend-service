@@ -1,9 +1,10 @@
 /**
- * Admin Service - Aggregates KPI statistics, server diagnostics, and audit logs
+ * Admin Service - Aggregates KPI statistics, deep character inspection, and audit-logged moderation actions
  */
 import { AdminRepository } from '../repositories/adminRepository.js';
 import { ServerStatusService } from './serverStatusService.js';
 import { SERVER_CONFIG } from '../config/serverConfig.js';
+import { getJobInfo } from '../utils/classNames.js';
 
 // In-memory admin action audit log buffer
 const adminAuditLogs = [
@@ -95,6 +96,141 @@ export class AdminService {
       activityTrend,
       recentActions: adminAuditLogs.slice(0, 10),
       lastUpdated: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Get filtered list of currently online players with job class names
+   */
+  static async getOnlinePlayers(filters = {}) {
+    const rawPlayers = await AdminRepository.getOnlineCharacters(filters);
+    const players = rawPlayers.map(p => {
+      const job = getJobInfo(p.class);
+      return {
+        ...p,
+        className: job.name,
+        classCategory: job.category,
+        jobType: job.type
+      };
+    });
+    return {
+      count: players.length,
+      players
+    };
+  }
+
+  /**
+   * Inspect a specific character deeply (Stats, Inventory, Storage, Logs)
+   */
+  static async inspectCharacter(charId) {
+    const data = await AdminRepository.getCharacterDeepDetails(charId);
+    if (!data) {
+      const err = new Error(`Character ID #${charId} not found`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const job = getJobInfo(data.character.class);
+    return {
+      ...data,
+      character: {
+        ...data.character,
+        className: job.name,
+        classCategory: job.category,
+        jobType: job.type
+      }
+    };
+  }
+
+  /**
+   * 1-Click Unstuck Character
+   */
+  static async unstuckCharacter(charId, adminUser) {
+    const charData = await AdminRepository.getCharacterDeepDetails(charId);
+    if (!charData) {
+      const err = new Error(`Character ID #${charId} not found`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await AdminRepository.unstuckCharacter(charId);
+
+    // Record in audit trail
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'UNSTUCK_CHARACTER',
+      target: charData.character.name,
+      details: `Teleported character #${charId} (${charData.character.name}) back to Prontera (155, 180).`
+    });
+
+    return {
+      success: true,
+      message: `Character ${charData.character.name} has been unstuck and coordinates reset to Prontera (155, 180).`
+    };
+  }
+
+  /**
+   * Ban Account
+   */
+  static async banAccount(accountId, { durationHours = 0, reason = 'Administrative Action' }, adminUser) {
+    await AdminRepository.banAccount(accountId, { durationHours, reason });
+
+    const banType = durationHours > 0 ? `Temporary (${durationHours} hours)` : 'Permanent';
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'BAN_ACCOUNT',
+      target: `Account #${accountId}`,
+      details: `${banType} ban applied to Account #${accountId}. Reason: ${reason}`
+    });
+
+    return {
+      success: true,
+      message: `Account #${accountId} has been banned (${banType}).`
+    };
+  }
+
+  /**
+   * Unban Account
+   */
+  static async unbanAccount(accountId, adminUser) {
+    await AdminRepository.unbanAccount(accountId);
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'UNBAN_ACCOUNT',
+      target: `Account #${accountId}`,
+      details: `Account #${accountId} has been restored and unbanned.`
+    });
+
+    return {
+      success: true,
+      message: `Account #${accountId} has been unbanned successfully.`
+    };
+  }
+
+  /**
+   * Reset Character Status / Skill points
+   */
+  static async resetCharacterPoints(charId, { resetStats = true, resetSkills = true }, adminUser) {
+    const charData = await AdminRepository.getCharacterDeepDetails(charId);
+    if (!charData) {
+      const err = new Error(`Character ID #${charId} not found`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await AdminRepository.resetCharacterStats(charId, { resetStats, resetSkills });
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'RESET_POINTS',
+      target: charData.character.name,
+      details: `Reset points for ${charData.character.name} (Stats: ${resetStats}, Skills: ${resetSkills}).`
+    });
+
+    return {
+      success: true,
+      message: `Character points reset successfully for ${charData.character.name}.`
     };
   }
 

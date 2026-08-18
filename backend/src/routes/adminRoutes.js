@@ -19,4 +19,14 @@ router.get('/verify', AdminController.verifyAdmin);
 // Dashboard KPI Metrics & Diagnostics
 router.get('/dashboard/stats', AdminController.getDashboardStats);
 
+// Phase 2: Live Players & Deep Character Inspection
+router.get('/players/online', AdminController.getOnlinePlayers);
+router.get('/characters/:charId/inspect', AdminController.getCharacterInspector);
+
+// Moderation Actions
+router.post('/characters/:charId/unstuck', AdminController.unstuckCharacter);
+router.post('/characters/:charId/reset-points', AdminController.resetCharacterPoints);
+router.post('/accounts/:accountId/ban', AdminController.banAccount);
+router.post('/accounts/:accountId/unban', AdminController.unbanAccount);
+
 export default router;
