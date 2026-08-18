@@ -591,42 +591,117 @@ export class AdminRepository {
   /**
    * Dispatch in-game mail / RodEx message with attached item and/or Zeny
    */
-  static async dispatchInGameMail({ senderName = 'Server Administrator', recipientCharId, title, body, zeny = 0, nameid = 0, amount = 0, refine = 0, card0 = 0, card1 = 0, card2 = 0, card3 = 0 }) {
+  static async dispatchInGameMail({
+    senderName = 'Server Administrator',
+    recipientCharId,
+    title,
+    body,
+    zeny = 0,
+    nameid = 0,
+    amount = 0,
+    refine = 0,
+    card0 = 0,
+    card1 = 0,
+    card2 = 0,
+    card3 = 0
+  }) {
     const parsedRecipient = parseInt(recipientCharId, 10);
     const parsedZeny = Math.max(0, parseInt(zeny, 10) || 0);
     const parsedNameId = parseInt(nameid, 10) || 0;
     const parsedAmount = Math.max(0, parseInt(amount, 10) || 0);
     const parsedRefine = Math.max(0, Math.min(10, parseInt(refine, 10) || 0));
+    const timeNow = Math.floor(Date.now() / 1000);
+    const mailTitle = (title || 'System Gift').slice(0, 45);
+    const mailBody = (body || 'Special delivery from administration.').slice(0, 500);
 
-    const mailSql = `
-      INSERT INTO \`mail\`
-        (send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type)
-      VALUES
-        (?, 0, (SELECT name FROM \`char\` WHERE char_id = ? LIMIT 1), ?, ?, ?, UNIX_TIMESTAMP(), 0, ?, 'M')
-    `;
-    const mailParams = [senderName, parsedRecipient, parsedRecipient, title || 'System Gift', body || 'Special delivery from administration.', parsedZeny];
-    const mailResult = await executeQuery(mailSql, mailParams);
-    const mailId = mailResult?.insertId || Date.now();
-
-    if (parsedNameId > 0 && parsedAmount > 0) {
-      const attachSql = `
-        INSERT INTO \`mail_attachments\`
-          (id, index_id, nameid, amount, refine, card0, card1, card2, card3)
-        VALUES
-          (?, 0, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      const attachParams = [
-        mailId, parsedNameId, parsedAmount, parsedRefine,
-        parseInt(card0, 10) || 0, parseInt(card1, 10) || 0,
-        parseInt(card2, 10) || 0, parseInt(card3, 10) || 0
-      ];
-      await executeQuery(attachSql, attachParams).catch(() => {});
+    // 1. Resolve recipient character name
+    let destName = `Char #${parsedRecipient}`;
+    try {
+      const charRows = await executeQuery('SELECT name FROM `char` WHERE char_id = ? LIMIT 1', [parsedRecipient]);
+      if (charRows && charRows.length > 0) {
+        destName = charRows[0].name;
+      }
+    } catch {
+      // fallback
     }
 
-    return {
-      success: true,
-      mailId
-    };
+    // 2. Try classic schema with inline item columns first or modern mail + attachments
+    try {
+      // Try classic rAthena single-table mail schema
+      const classicMailSql = `
+        INSERT INTO \`mail\` (
+          send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type,
+          nameid, amount, refine, attribute, identify, card0, card1, card2, card3, unique_id
+        ) VALUES (?, 0, ?, ?, ?, ?, ?, 0, ?, 0, ?, ?, ?, 0, 1, ?, ?, ?, ?, 0)
+      `;
+      const classicParams = [
+        senderName,
+        destName,
+        parsedRecipient,
+        mailTitle,
+        mailBody,
+        timeNow,
+        parsedZeny,
+        parsedNameId,
+        parsedAmount,
+        parsedRefine,
+        parseInt(card0, 10) || 0,
+        parseInt(card1, 10) || 0,
+        parseInt(card2, 10) || 0,
+        parseInt(card3, 10) || 0
+      ];
+
+      const res = await executeQuery(classicMailSql, classicParams);
+      return { success: true, mailId: res?.insertId || Date.now() };
+    } catch (classicErr) {
+      console.warn('[AdminRepository] Classic mail insert failed, trying separate attachments schema:', classicErr.message);
+
+      // Try modern separate tables schema (mail + mail_attachments)
+      try {
+        const mailSql = `
+          INSERT INTO \`mail\`
+            (send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type)
+          VALUES
+            (?, 0, ?, ?, ?, ?, ?, 0, ?, 0)
+        `;
+        const mailParams = [senderName, destName, parsedRecipient, mailTitle, mailBody, timeNow, parsedZeny];
+        const mailResult = await executeQuery(mailSql, mailParams);
+        const mailId = mailResult?.insertId || Date.now();
+
+        if (parsedNameId > 0 && parsedAmount > 0) {
+          const attachSql = `
+            INSERT INTO \`mail_attachments\`
+              (id, index_id, nameid, amount, refine, card0, card1, card2, card3)
+            VALUES
+              (?, 0, ?, ?, ?, ?, ?, ?, ?)
+          `;
+          const attachParams = [
+            mailId, parsedNameId, parsedAmount, parsedRefine,
+            parseInt(card0, 10) || 0, parseInt(card1, 10) || 0,
+            parseInt(card2, 10) || 0, parseInt(card3, 10) || 0
+          ];
+          await executeQuery(attachSql, attachParams).catch(() => {});
+        }
+
+        return { success: true, mailId };
+      } catch (nestedErr) {
+        console.error('[AdminRepository] Mail dispatch error, falling back to direct backpack delivery:', nestedErr.message);
+        // Fallback to direct backpack injection so player still gets the item & zeny!
+        if (parsedNameId > 0 && parsedAmount > 0) {
+          await this.dispatchItemToBackpack({
+            charId: parsedRecipient,
+            nameid: parsedNameId,
+            amount: parsedAmount,
+            refine: parsedRefine,
+            card0, card1, card2, card3
+          });
+        }
+        if (parsedZeny > 0) {
+          await this.dispatchZeny({ charId: parsedRecipient, amount: parsedZeny });
+        }
+        return { success: true, mailId: Date.now(), fallbackDelivered: true };
+      }
+    }
   }
 
   /**
