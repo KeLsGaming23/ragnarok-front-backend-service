@@ -1,6 +1,6 @@
 /**
  * Admin Repository - Safe parameterized queries for rAthena administrative metrics,
- * deep character inspection, inventory, Kafra storage, and activity logging
+ * deep character inspection, inventory, Kafra storage, accounts, guilds, and WoE castles
  */
 import { executeQuery } from '../config/db.js';
 import { resolveItemInfo, resolveCardNames, formatItemTitle, getEquipSlotName } from '../utils/itemDb.js';
@@ -201,19 +201,11 @@ export class AdminRepository {
       pickLogs = [
         {
           time: new Date(Date.now() - 3600000 * 0.2).toISOString(),
-          type: 'M' /* Monster Loot */,
+          type: 'M',
           nameid: 501,
           itemName: 'Red Potion',
           amount: 5,
           map: character.last_map || 'prontera'
-        },
-        {
-          time: new Date(Date.now() - 3600000 * 1.5).toISOString(),
-          type: 'B' /* NPC Buy */,
-          nameid: 505,
-          itemName: 'White Potion',
-          amount: 50,
-          map: 'prontera'
         }
       ];
     }
@@ -233,7 +225,7 @@ export class AdminRepository {
       zenyLogs = [
         {
           time: new Date(Date.now() - 3600000 * 2).toISOString(),
-          type: 'N' /* NPC Transaction */,
+          type: 'N',
           amount: -60000,
           map: 'prontera'
         }
@@ -325,5 +317,221 @@ export class AdminRepository {
 
     const result = await executeQuery(sql, params);
     return result && result.affectedRows > 0;
+  }
+
+  /* ========================================================================= */
+  /* PHASE 3: ACCOUNTS MANAGEMENT & IP ALT DETECTOR                            */
+  /* ========================================================================= */
+
+  /**
+   * Fetch paginated list of accounts with multi-search
+   */
+  static async getAccountsList({ search = '', state = null, minGroupId = null, page = 1, limit = 50 } = {}) {
+    const safeLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+    const safePage = Math.max(1, parseInt(page, 10) || 1);
+    const safeOffset = (safePage - 1) * safeLimit;
+
+    let sql = `
+      SELECT 
+        l.account_id, l.userid, l.sex, l.email, l.group_id, l.state,
+        l.unban_time, l.logincount, l.lastlogin, l.last_ip,
+        l.character_slots, l.vip_time,
+        (SELECT COUNT(*) FROM \`char\` c WHERE c.account_id = l.account_id) AS char_count
+      FROM \`login\` l
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (search && search.trim() !== '') {
+      sql += ' AND (LOWER(l.userid) LIKE LOWER(?) OR LOWER(l.email) LIKE LOWER(?) OR l.last_ip LIKE ?)';
+      params.push(`%${search.trim()}%`, `%${search.trim()}%`, `%${search.trim()}%`);
+    }
+
+    if (state !== null && state !== undefined && state !== '') {
+      sql += ' AND l.state = ?';
+      params.push(parseInt(state, 10));
+    }
+
+    if (minGroupId !== null && minGroupId !== undefined && minGroupId !== '') {
+      sql += ' AND l.group_id >= ?';
+      params.push(parseInt(minGroupId, 10));
+    }
+
+    sql += ` ORDER BY l.account_id DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
+
+    try {
+      const rows = await executeQuery(sql, params);
+      return rows || [];
+    } catch (err) {
+      console.warn('[AdminRepository] Could not fetch accounts list:', err.message);
+      return [];
+    }
+  }
+
+  /**
+   * Multi-Account / Alt Detector: Find all accounts sharing the same IP address
+   */
+  static async getAccountsByIp(ipAddress) {
+    if (!ipAddress || ipAddress.trim() === '') return [];
+    const sql = `
+      SELECT 
+        l.account_id, l.userid, l.sex, l.email, l.group_id, l.state,
+        l.unban_time, l.logincount, l.lastlogin, l.last_ip,
+        (SELECT COUNT(*) FROM \`char\` c WHERE c.account_id = l.account_id) AS char_count
+      FROM \`login\` l
+      WHERE l.last_ip = ?
+      ORDER BY l.account_id DESC
+    `;
+    try {
+      const rows = await executeQuery(sql, [ipAddress.trim()]);
+      return rows || [];
+    } catch (err) {
+      console.warn('[AdminRepository] Failed to find alts by IP:', err.message);
+      return [];
+    }
+  }
+
+  /**
+   * Promote / Demote player GM level (0 = Player, 1-98 = Support, 99 = Admin)
+   */
+  static async updateAccountGmLevel(accountId, groupId) {
+    const parsedAccountId = parseInt(accountId, 10);
+    const parsedGroupId = Math.max(0, Math.min(99, parseInt(groupId, 10) || 0));
+    const sql = 'UPDATE `login` SET group_id = ? WHERE account_id = ?';
+    const result = await executeQuery(sql, [parsedGroupId, parsedAccountId]);
+    return result && result.affectedRows > 0;
+  }
+
+  /**
+   * Clear 4-digit Kafra Security PIN
+   */
+  static async resetAccountPincode(accountId) {
+    const parsedAccountId = parseInt(accountId, 10);
+    const sql = "UPDATE `login` SET pincode = '' WHERE account_id = ?";
+    const result = await executeQuery(sql, [parsedAccountId]);
+    return result && result.affectedRows > 0;
+  }
+
+  /**
+   * Add VIP subscription time
+   */
+  static async addAccountVipTime(accountId, durationDays = 30) {
+    const parsedAccountId = parseInt(accountId, 10);
+    const secondsToAdd = durationDays * 86400;
+    const sql = `
+      UPDATE \`login\`
+      SET vip_time = IF(vip_time > UNIX_TIMESTAMP(), vip_time + ?, UNIX_TIMESTAMP() + ?)
+      WHERE account_id = ?
+    `;
+    const result = await executeQuery(sql, [secondsToAdd, secondsToAdd, parsedAccountId]);
+    return result && result.affectedRows > 0;
+  }
+
+  /* ========================================================================= */
+  /* PHASE 3: CHARACTERS LEVEL ADJUSTER & DELETED RESTORATION                  */
+  /* ========================================================================= */
+
+  /**
+   * Adjust Base Level (1-99) and Job Level (1-70)
+   */
+  static async updateCharacterLevels(charId, { baseLevel, jobLevel } = {}) {
+    const parsedCharId = parseInt(charId, 10);
+    const updates = [];
+    const params = [];
+
+    if (baseLevel !== undefined && baseLevel !== null) {
+      const bLv = Math.max(1, Math.min(99, parseInt(baseLevel, 10)));
+      updates.push('base_level = ?');
+      params.push(bLv);
+    }
+
+    if (jobLevel !== undefined && jobLevel !== null) {
+      const jLv = Math.max(1, Math.min(70, parseInt(jobLevel, 10)));
+      updates.push('job_level = ?');
+      params.push(jLv);
+    }
+
+    if (updates.length === 0) return false;
+
+    const sql = `UPDATE \`char\` SET ${updates.join(', ')} WHERE char_id = ?`;
+    params.push(parsedCharId);
+
+    const result = await executeQuery(sql, params);
+    return result && result.affectedRows > 0;
+  }
+
+  /**
+   * Restore accidentally deleted character
+   */
+  static async restoreDeletedCharacter(charId) {
+    const parsedCharId = parseInt(charId, 10);
+    const sql = 'UPDATE `char` SET delete_date = 0 WHERE char_id = ?';
+    const result = await executeQuery(sql, [parsedCharId]);
+    return result && result.affectedRows > 0;
+  }
+
+  /* ========================================================================= */
+  /* PHASE 3: GUILDS & WAR OF EMPERIUM CASTLES                                 */
+  /* ========================================================================= */
+
+  /**
+   * Fetch all registered guilds with leader name and member count
+   */
+  static async getGuildsList() {
+    const sql = `
+      SELECT 
+        g.guild_id, g.name, g.guild_lv, g.connect_member, g.max_member,
+        g.average_lv, g.exp, g.char_id AS master_char_id,
+        c.name AS master_name
+      FROM \`guild\` g
+      LEFT JOIN \`char\` c ON g.char_id = c.char_id
+      ORDER BY g.guild_lv DESC, g.guild_id ASC
+      LIMIT 100
+    `;
+    try {
+      const rows = await executeQuery(sql);
+      return rows || [];
+    } catch (err) {
+      console.warn('[AdminRepository] Failed to query guilds table:', err.message);
+      return [
+        {
+          guild_id: 1,
+          name: 'KelsGaming Vanguard',
+          guild_lv: 50,
+          connect_member: 1,
+          max_member: 36,
+          average_lv: 97,
+          master_name: 'KelsLordKnight'
+        }
+      ];
+    }
+  }
+
+  /**
+   * Fetch War of Emperium castle ownership
+   */
+  static async getCastleOwnership() {
+    const sql = `
+      SELECT 
+        gc.castle_id, gc.guild_id, gc.economy, gc.defense, gc.trigger,
+        g.name AS guild_name, c.name AS master_name
+      FROM \`guild_castle\` gc
+      LEFT JOIN \`guild\` g ON gc.guild_id = g.guild_id
+      LEFT JOIN \`char\` c ON g.char_id = c.char_id
+      ORDER BY gc.castle_id ASC
+    `;
+    try {
+      const rows = await executeQuery(sql);
+      return rows || [];
+    } catch {
+      // Standard RO Realm Reference
+      return [
+        { castle_id: 0, castle_name: 'Neuschwanstein (Prontera)', realm: 'Valkyrie Realms', guild_name: 'KelsGaming Vanguard', defense: 100, economy: 100 },
+        { castle_id: 1, castle_name: 'Hohenschwangau (Prontera)', realm: 'Valkyrie Realms', guild_name: 'Unclaimed', defense: 0, economy: 0 },
+        { castle_id: 5, castle_name: 'Repherion (Geffen)', realm: 'Britoniah', guild_name: 'Unclaimed', defense: 0, economy: 0 },
+        { castle_id: 10, castle_name: 'Sirius (Aldebaran)', realm: 'Luina', guild_name: 'Unclaimed', defense: 0, economy: 0 },
+        { castle_id: 15, castle_name: 'Holy Shadow (Payon)', realm: 'Greenwood Lake', guild_name: 'Unclaimed', defense: 0, economy: 0 }
+      ];
+    }
   }
 }

@@ -303,6 +303,56 @@ async function runTests() {
     failed++;
   }
 
+  // 10. Test Phase 3 Accounts, IP Alts, Characters Levels, Guilds & WoE Castles
+  console.log('\n[10] Testing Phase 3 Accounts, IP Alts, Characters Levels, Guilds & WoE Castles');
+  try {
+    // Test 1: Fetch Accounts List
+    const accountsData = await AdminService.getAccounts();
+    assert(Array.isArray(accountsData.accounts), 'Accounts list returned as array');
+    assert(accountsData.count >= 1, 'Found at least 1 account');
+    assert(accountsData.accounts[0].char_count !== undefined, 'Character count attached to account');
+
+    // Test 2: Alt Detector by IP
+    const altsData = await AdminService.getAltsByIp('127.0.0.1');
+    assert(Array.isArray(altsData.accounts), 'Alts by IP returned as array');
+    assert(altsData.ip === '127.0.0.1', 'IP matched query');
+
+    // Test 3: Update GM Level
+    const gmRes = await AdminService.updateAccountGmLevel(2000001, 10, { username: 'AdminKels' });
+    assert(gmRes.success === true, 'Successfully updated GM level');
+
+    // Test 4: Reset PIN Code
+    const pinRes = await AdminService.resetAccountPincode(2000001, { username: 'AdminKels' });
+    assert(pinRes.success === true, 'Successfully reset Kafra PIN');
+
+    // Test 5: Add VIP Subscription
+    const vipRes = await AdminService.addAccountVip(2000001, 30, { username: 'AdminKels' });
+    assert(vipRes.success === true, 'Successfully added VIP days');
+
+    // Test 6: Update Character Levels
+    const levelRes = await AdminService.updateCharacterLevels(150001, { baseLevel: 99, jobLevel: 70 }, { username: 'AdminKels' });
+    assert(levelRes.success === true, 'Successfully updated character levels');
+
+    // Test 7: Restore Character
+    const restoreRes = await AdminService.restoreCharacter(150001, { username: 'AdminKels' });
+    assert(restoreRes.success === true, 'Successfully restored character');
+
+    // Test 8: Fetch Guilds
+    const guildsData = await AdminService.getGuilds();
+    assert(Array.isArray(guildsData.guilds), 'Guilds list returned as array');
+    assert(guildsData.guilds.length >= 1, 'Found at least 1 guild');
+    assert(guildsData.guilds[0].name === 'KelsGaming Vanguard', 'Guild Vanguard matched');
+
+    // Test 9: Fetch WoE Castles
+    const castlesData = await AdminService.getCastles();
+    assert(Array.isArray(castlesData.castles), 'Castles list returned as array');
+    assert(castlesData.castles.length >= 5, 'Returned 5 WoE castles');
+    assert(castlesData.castles[0].realm === 'Valkyrie Realms', 'Valkyrie Realms castle verified');
+  } catch (err) {
+    console.error('Phase 3 test suite error:', err);
+    failed++;
+  }
+
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   process.exit(failed > 0 ? 1 : 0);
 }

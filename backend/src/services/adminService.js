@@ -1,5 +1,5 @@
 /**
- * Admin Service - Aggregates KPI statistics, deep character inspection, and audit-logged moderation actions
+ * Admin Service - Aggregates KPI statistics, deep character inspection, accounts, guilds, and audit-logged moderation actions
  */
 import { AdminRepository } from '../repositories/adminRepository.js';
 import { ServerStatusService } from './serverStatusService.js';
@@ -60,18 +60,18 @@ export class AdminService {
     const days = Math.floor(uptimeSeconds / 86400);
     const hours = Math.floor((uptimeSeconds % 86400) / 3600);
     const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-    const uptimeFormatted = `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m`;
+    const formattedUptime = `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m`;
 
-    // 24-hour activity distribution trend
+    // Simulated 24-hour peak player trend graph data
     const baseOnline = Math.max(kpiData.onlinePlayers, 1);
     const activityTrend = [
-      { time: '00:00', players: Math.max(1, Math.round(baseOnline * 0.45)) },
-      { time: '04:00', players: Math.max(1, Math.round(baseOnline * 0.30)) },
-      { time: '08:00', players: Math.max(1, Math.round(baseOnline * 0.65)) },
-      { time: '12:00', players: Math.max(1, Math.round(baseOnline * 0.90)) },
-      { time: '16:00', players: Math.max(1, Math.round(baseOnline * 1.15)) },
-      { time: '20:00', players: Math.max(1, Math.round(baseOnline * 1.35)) },
-      { time: '22:00', players: Math.max(1, Math.round(baseOnline * 1.20)) }
+      { time: '00:00', players: Math.round(baseOnline * 0.4) },
+      { time: '04:00', players: Math.round(baseOnline * 0.2) },
+      { time: '08:00', players: Math.round(baseOnline * 0.5) },
+      { time: '12:00', players: Math.round(baseOnline * 0.8) },
+      { time: '16:00', players: Math.round(baseOnline * 1.2) },
+      { time: '20:00', players: Math.round(baseOnline * 1.5) },
+      { time: '23:59', players: baseOnline }
     ];
 
     return {
@@ -79,11 +79,10 @@ export class AdminService {
         onlinePlayers: kpiData.onlinePlayers,
         onlineGrowth: '+8.2%',
         totalAccounts: kpiData.totalAccounts,
-        accountGrowth: '+12 this wk',
+        accountGrowth: `+${Math.max(1, Math.round(kpiData.totalAccounts * 0.05))} this wk`,
         totalCharacters: kpiData.totalCharacters,
         avgCharLevel: 84,
-        serverUptime: uptimeFormatted,
-        uptimeDays: days,
+        serverUptime: formattedUptime,
         reportsCount: 0,
         reportsStatus: 'All Clear',
         bannedAccounts: kpiData.bannedAccounts,
@@ -120,7 +119,7 @@ export class AdminService {
   }
 
   /**
-   * Inspect a specific character deeply (Stats, Inventory, Storage, Logs)
+   * Inspect a single character with full deep inventory, storage, stats, and logs
    */
   static async inspectCharacter(charId) {
     const data = await AdminRepository.getCharacterDeepDetails(charId);
@@ -155,37 +154,41 @@ export class AdminService {
 
     await AdminRepository.unstuckCharacter(charId);
 
-    // Record in audit trail
     this.logAction({
       adminName: adminUser?.username || 'Admin',
-      actionType: 'UNSTUCK_CHARACTER',
+      actionType: 'UNSTUCK_CHAR',
       target: charData.character.name,
-      details: `Teleported character #${charId} (${charData.character.name}) back to Prontera (155, 180).`
+      details: `Teleported ${charData.character.name} to Prontera (155, 180).`
     });
 
     return {
       success: true,
-      message: `Character ${charData.character.name} has been unstuck and coordinates reset to Prontera (155, 180).`
+      message: `Successfully teleported ${charData.character.name} to Prontera.`
     };
   }
 
   /**
    * Ban Account
    */
-  static async banAccount(accountId, { durationHours = 0, reason = 'Administrative Action' }, adminUser) {
-    await AdminRepository.banAccount(accountId, { durationHours, reason });
+  static async banAccount(accountId, { durationHours = 0, reason = 'Administrative Suspension' }, adminUser) {
+    const success = await AdminRepository.banAccount(accountId, { durationHours, reason });
+    if (!success) {
+      const err = new Error(`Failed to apply ban to account #${accountId}`);
+      err.statusCode = 400;
+      throw err;
+    }
 
-    const banType = durationHours > 0 ? `Temporary (${durationHours} hours)` : 'Permanent';
+    const durationText = durationHours > 0 ? `${durationHours} hours` : 'Permanent';
     this.logAction({
       adminName: adminUser?.username || 'Admin',
       actionType: 'BAN_ACCOUNT',
       target: `Account #${accountId}`,
-      details: `${banType} ban applied to Account #${accountId}. Reason: ${reason}`
+      details: `Applied ${durationText} ban. Reason: ${reason}`
     });
 
     return {
       success: true,
-      message: `Account #${accountId} has been banned (${banType}).`
+      message: `Account #${accountId} has been suspended (${durationText}).`
     };
   }
 
@@ -193,7 +196,12 @@ export class AdminService {
    * Unban Account
    */
   static async unbanAccount(accountId, adminUser) {
-    await AdminRepository.unbanAccount(accountId);
+    const success = await AdminRepository.unbanAccount(accountId);
+    if (!success) {
+      const err = new Error(`Failed to unban account #${accountId}`);
+      err.statusCode = 400;
+      throw err;
+    }
 
     this.logAction({
       adminName: adminUser?.username || 'Admin',
@@ -231,6 +239,192 @@ export class AdminService {
     return {
       success: true,
       message: `Character points reset successfully for ${charData.character.name}.`
+    };
+  }
+
+  /* ========================================================================= */
+  /* PHASE 3: ACCOUNTS MANAGEMENT & IP ALTS                                    */
+  /* ========================================================================= */
+
+  /**
+   * Get paginated accounts list
+   */
+  static async getAccounts(filters = {}) {
+    const accounts = await AdminRepository.getAccountsList(filters);
+    return {
+      count: accounts.length,
+      accounts: accounts.map(a => ({
+        ...a,
+        isBanned: a.state === 5 || (a.unban_time > 0 && a.unban_time > Math.floor(Date.now() / 1000)),
+        isVip: a.vip_time > 0 && a.vip_time > Math.floor(Date.now() / 1000)
+      }))
+    };
+  }
+
+  /**
+   * Multi-Account / Alt Detector by IP
+   */
+  static async getAltsByIp(ipAddress) {
+    const accounts = await AdminRepository.getAccountsByIp(ipAddress);
+    return {
+      ip: ipAddress,
+      count: accounts.length,
+      accounts: accounts.map(a => ({
+        ...a,
+        isBanned: a.state === 5 || (a.unban_time > 0 && a.unban_time > Math.floor(Date.now() / 1000))
+      }))
+    };
+  }
+
+  /**
+   * Promote / Demote GM Level
+   */
+  static async updateAccountGmLevel(accountId, groupId, adminUser) {
+    const success = await AdminRepository.updateAccountGmLevel(accountId, groupId);
+    if (!success) {
+      const err = new Error(`Failed to update GM level for account #${accountId}`);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'CHANGE_GM_LEVEL',
+      target: `Account #${accountId}`,
+      details: `Updated GM Level to ${groupId}.`
+    });
+
+    return {
+      success: true,
+      message: `Account #${accountId} GM level updated to ${groupId}.`
+    };
+  }
+
+  /**
+   * Reset 4-digit Kafra PIN
+   */
+  static async resetAccountPincode(accountId, adminUser) {
+    const success = await AdminRepository.resetAccountPincode(accountId);
+    if (!success) {
+      const err = new Error(`Failed to reset PIN for account #${accountId}`);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'RESET_PINCODE',
+      target: `Account #${accountId}`,
+      details: 'Cleared 4-digit Kafra security PIN.'
+    });
+
+    return {
+      success: true,
+      message: `Account #${accountId} Kafra PIN cleared successfully.`
+    };
+  }
+
+  /**
+   * Add VIP Subscription time
+   */
+  static async addAccountVip(accountId, durationDays = 30, adminUser) {
+    const success = await AdminRepository.addAccountVipTime(accountId, durationDays);
+    if (!success) {
+      const err = new Error(`Failed to add VIP time to account #${accountId}`);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'ADD_VIP',
+      target: `Account #${accountId}`,
+      details: `Added ${durationDays} days of VIP subscription.`
+    });
+
+    return {
+      success: true,
+      message: `Added ${durationDays} days of VIP status to account #${accountId}.`
+    };
+  }
+
+  /* ========================================================================= */
+  /* PHASE 3: CHARACTERS LEVEL ADJUSTER & DELETED RESTORATION                  */
+  /* ========================================================================= */
+
+  /**
+   * Adjust Base Level and/or Job Level
+   */
+  static async updateCharacterLevels(charId, { baseLevel, jobLevel }, adminUser) {
+    const charData = await AdminRepository.getCharacterDeepDetails(charId);
+    if (!charData) {
+      const err = new Error(`Character ID #${charId} not found`);
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await AdminRepository.updateCharacterLevels(charId, { baseLevel, jobLevel });
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'EDIT_LEVELS',
+      target: charData.character.name,
+      details: `Set Base Lv: ${baseLevel ?? 'unchanged'}, Job Lv: ${jobLevel ?? 'unchanged'}.`
+    });
+
+    return {
+      success: true,
+      message: `Updated level(s) for ${charData.character.name} successfully.`
+    };
+  }
+
+  /**
+   * Restore Deleted Character
+   */
+  static async restoreCharacter(charId, adminUser) {
+    const success = await AdminRepository.restoreDeletedCharacter(charId);
+    if (!success) {
+      const err = new Error(`Failed to restore character #${charId}`);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    this.logAction({
+      adminName: adminUser?.username || 'Admin',
+      actionType: 'RESTORE_CHAR',
+      target: `Char #${charId}`,
+      details: `Restored deleted character #${charId}.`
+    });
+
+    return {
+      success: true,
+      message: `Character #${charId} has been successfully restored.`
+    };
+  }
+
+  /* ========================================================================= */
+  /* PHASE 3: GUILDS & WAR OF EMPERIUM CASTLES                                 */
+  /* ========================================================================= */
+
+  /**
+   * Get all registered guilds
+   */
+  static async getGuilds() {
+    const guilds = await AdminRepository.getGuildsList();
+    return {
+      count: guilds.length,
+      guilds
+    };
+  }
+
+  /**
+   * Get WoE Castle Ownership
+   */
+  static async getCastles() {
+    const castles = await AdminRepository.getCastleOwnership();
+    return {
+      count: castles.length,
+      castles
     };
   }
 

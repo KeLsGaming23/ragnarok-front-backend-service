@@ -19,6 +19,9 @@ import ServerInfoPage from './pages/ServerInfoPage';
 import NotFoundPage from './pages/NotFoundPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminPlayersPage from './pages/admin/AdminPlayersPage';
+import AdminAccountsPage from './pages/admin/AdminAccountsPage';
+import AdminCharactersPage from './pages/admin/AdminCharactersPage';
+import AdminGuildsPage from './pages/admin/AdminGuildsPage';
 
 function AppContent() {
   const location = useLocation();
@@ -63,6 +66,30 @@ function AppContent() {
             element={
               <AdminRoute>
                 <AdminPlayersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/accounts"
+            element={
+              <AdminRoute>
+                <AdminAccountsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/characters"
+            element={
+              <AdminRoute>
+                <AdminCharactersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/guilds"
+            element={
+              <AdminRoute>
+                <AdminGuildsPage />
               </AdminRoute>
             }
           />

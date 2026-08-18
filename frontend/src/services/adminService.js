@@ -66,5 +66,89 @@ export const adminService = {
   unbanAccount: async (accountId) => {
     const res = await api.post(`/api/admin/accounts/${accountId}/unban`);
     return res?.data ?? res;
+  },
+
+  /* ========================================================================= */
+  /* PHASE 3: ACCOUNTS MANAGEMENT & IP ALTS                                    */
+  /* ========================================================================= */
+
+  /**
+   * Get list of accounts with multi-search
+   */
+  getAccounts: async (params = {}) => {
+    const res = await api.get('/api/admin/accounts', { params });
+    return res?.data ?? res;
+  },
+
+  /**
+   * Find alt accounts sharing the same IP
+   */
+  getAltsByIp: async (ip) => {
+    const res = await api.get('/api/admin/accounts/alts-by-ip', { params: { ip } });
+    return res?.data ?? res;
+  },
+
+  /**
+   * Promote / Demote GM Level
+   */
+  updateAccountGmLevel: async (accountId, groupId) => {
+    const res = await api.post(`/api/admin/accounts/${accountId}/gm-level`, { groupId });
+    return res?.data ?? res;
+  },
+
+  /**
+   * Reset Kafra 4-digit PIN
+   */
+  resetAccountPincode: async (accountId) => {
+    const res = await api.post(`/api/admin/accounts/${accountId}/reset-pincode`);
+    return res?.data ?? res;
+  },
+
+  /**
+   * Add VIP Subscription time
+   */
+  addAccountVip: async (accountId, durationDays = 30) => {
+    const res = await api.post(`/api/admin/accounts/${accountId}/vip`, { durationDays });
+    return res?.data ?? res;
+  },
+
+  /* ========================================================================= */
+  /* PHASE 3: CHARACTERS LEVEL ADJUSTER & RESTORE                              */
+  /* ========================================================================= */
+
+  /**
+   * Adjust Base Level & Job Level
+   */
+  updateCharacterLevels: async (charId, data = {}) => {
+    const res = await api.post(`/api/admin/characters/${charId}/levels`, data);
+    return res?.data ?? res;
+  },
+
+  /**
+   * Restore deleted character
+   */
+  restoreCharacter: async (charId) => {
+    const res = await api.post(`/api/admin/characters/${charId}/restore`);
+    return res?.data ?? res;
+  },
+
+  /* ========================================================================= */
+  /* PHASE 3: GUILDS & WAR OF EMPERIUM CASTLES                                 */
+  /* ========================================================================= */
+
+  /**
+   * Get registered guilds
+   */
+  getGuilds: async () => {
+    const res = await api.get('/api/admin/guilds');
+    return res?.data ?? res;
+  },
+
+  /**
+   * Get WoE Castle ownership
+   */
+  getCastles: async () => {
+    const res = await api.get('/api/admin/castles');
+    return res?.data ?? res;
   }
 };

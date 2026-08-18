@@ -13,7 +13,7 @@ const router = Router();
 router.use(authenticateToken);
 router.use(requireAdmin(99));
 
-// Admin Verification
+// Admin Verification & Capabilities
 router.get('/verify', AdminController.verifyAdmin);
 
 // Dashboard KPI Metrics & Diagnostics
@@ -28,5 +28,20 @@ router.post('/characters/:charId/unstuck', AdminController.unstuckCharacter);
 router.post('/characters/:charId/reset-points', AdminController.resetCharacterPoints);
 router.post('/accounts/:accountId/ban', AdminController.banAccount);
 router.post('/accounts/:accountId/unban', AdminController.unbanAccount);
+
+// Phase 3: Accounts Management & IP Alts
+router.get('/accounts', AdminController.getAccounts);
+router.get('/accounts/alts-by-ip', AdminController.getAltsByIp);
+router.post('/accounts/:accountId/gm-level', AdminController.updateAccountGmLevel);
+router.post('/accounts/:accountId/reset-pincode', AdminController.resetAccountPincode);
+router.post('/accounts/:accountId/vip', AdminController.addAccountVip);
+
+// Phase 3: Characters Roster & Level Editor
+router.post('/characters/:charId/levels', AdminController.updateCharacterLevels);
+router.post('/characters/:charId/restore', AdminController.restoreCharacter);
+
+// Phase 3: Guilds & War of Emperium
+router.get('/guilds', AdminController.getGuilds);
+router.get('/castles', AdminController.getCastles);
 
 export default router;

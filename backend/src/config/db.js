@@ -247,7 +247,7 @@ function executeMockQuery(sql, params) {
   }
 
   // SELECT login WHERE account_id = ?
-  if (normalizedSql.includes('select') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login')) && (normalizedSql.includes('where account_id =') || normalizedSql.includes('where `account_id` =') || normalizedSql.includes('where l.account_id ='))) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login')) && (normalizedSql.includes('where account_id = ?') || normalizedSql.includes('where `account_id` = ?') || normalizedSql.includes('where l.account_id = ?'))) {
     const accountId = parseInt(params[0], 10);
     const found = mockStore.accounts.filter(a => a.account_id === accountId);
     return found;
@@ -284,18 +284,20 @@ function executeMockQuery(sql, params) {
     return { insertId: newId, affectedRows: 1 };
   }
 
-  // UPDATE login SET user_pass = ? WHERE account_id = ?
+  // UPDATE login (user_pass, state, group_id, pincode, vip_time)
   if (normalizedSql.includes('update login') || normalizedSql.includes('update `login`')) {
-    if (normalizedSql.includes('user_pass = ?')) {
-      const newPass = params[0];
-      const accountId = parseInt(params[1], 10);
-      const acc = mockStore.accounts.find(a => a.account_id === accountId);
-      if (acc) {
-        acc.user_pass = newPass;
-        return { affectedRows: 1 };
-      }
+    const accId = parseInt(params[params.length - 1], 10);
+    const acc = mockStore.accounts.find(a => a.account_id === accId);
+    if (acc) {
+      if (normalizedSql.includes('user_pass = ?')) acc.user_pass = params[0];
+      if (normalizedSql.includes('state = 0')) acc.state = 0;
+      else if (normalizedSql.includes('state = 5') || normalizedSql.includes('state = ?')) acc.state = 5;
+      if (normalizedSql.includes('group_id = ?')) acc.group_id = params[0];
+      if (normalizedSql.includes('pincode =')) acc.pincode = '';
+      if (normalizedSql.includes('vip_time =')) acc.vip_time = Math.floor(Date.now() / 1000) + 86400 * 30;
+      return { affectedRows: 1, changedRows: 1 };
     }
-    return { affectedRows: 0 };
+    return { affectedRows: 1, changedRows: 1 };
   }
 
   // SELECT FROM char WHERE char_id = ? AND account_id = ?
@@ -307,7 +309,7 @@ function executeMockQuery(sql, params) {
   }
 
   // SELECT FROM char WHERE account_id = ?
-  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && (normalizedSql.includes('where account_id =') || normalizedSql.includes('where `account_id` =') || normalizedSql.includes('where c.account_id ='))) {
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && (normalizedSql.includes('where account_id = ?') || normalizedSql.includes('where `account_id` = ?') || normalizedSql.includes('where c.account_id = ?'))) {
     const accountId = parseInt(params[0], 10);
     const found = mockStore.chars.filter(c => c.account_id === accountId);
     return found;
@@ -453,6 +455,60 @@ function executeMockQuery(sql, params) {
   if (normalizedSql.includes('count') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('online = 1')) {
     const count = mockStore.chars.filter(c => c.online === 1).length;
     return [{ count, online_count: count }];
+  }
+
+  // SELECT FROM login l (Accounts List)
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `login` l') || normalizedSql.includes('from login l'))) {
+    if (normalizedSql.includes('l.last_ip = ?')) {
+      const ip = params[0];
+      return mockStore.accounts.filter(a => (a.last_ip || '127.0.0.1') === ip).map(a => ({
+        ...a,
+        char_count: mockStore.chars.filter(c => c.account_id === a.account_id).length
+      }));
+    }
+    return mockStore.accounts.map(a => ({
+      ...a,
+      char_count: mockStore.chars.filter(c => c.account_id === a.account_id).length
+    }));
+  }
+
+  // UPDATE login SET group_id = ? / pincode / vip_time
+  if ((normalizedSql.includes('update `login`') || normalizedSql.includes('update login')) && (normalizedSql.includes('group_id =') || normalizedSql.includes('pincode =') || normalizedSql.includes('vip_time ='))) {
+    const accId = parseInt(params[params.length - 1], 10);
+    const acc = mockStore.accounts.find(a => a.account_id === accId);
+    if (acc) {
+      if (normalizedSql.includes('group_id = ?')) acc.group_id = params[0];
+      if (normalizedSql.includes('pincode =')) acc.pincode = '';
+      if (normalizedSql.includes('vip_time =')) acc.vip_time = Math.floor(Date.now() / 1000) + 86400 * 30;
+      return { affectedRows: 1, changedRows: 1 };
+    }
+    return { affectedRows: 1, changedRows: 1 };
+  }
+
+  // SELECT FROM guild
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `guild`') || normalizedSql.includes('from guild'))) {
+    return [
+      {
+        guild_id: 1,
+        name: 'KelsGaming Vanguard',
+        guild_lv: 50,
+        connect_member: 1,
+        max_member: 36,
+        average_lv: 97,
+        master_name: 'KelsLordKnight'
+      }
+    ];
+  }
+
+  // SELECT FROM guild_castle
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `guild_castle`') || normalizedSql.includes('from guild_castle'))) {
+    return [
+      { castle_id: 0, castle_name: 'Neuschwanstein', realm: 'Valkyrie Realms', guild_name: 'KelsGaming Vanguard', defense: 100, economy: 100 },
+      { castle_id: 1, castle_name: 'Hohenschwangau', realm: 'Valkyrie Realms', guild_name: 'Unclaimed', defense: 0, economy: 0 },
+      { castle_id: 5, castle_name: 'Repherion', realm: 'Britoniah', guild_name: 'Unclaimed', defense: 0, economy: 0 },
+      { castle_id: 10, castle_name: 'Sirius', realm: 'Luina', guild_name: 'Unclaimed', defense: 0, economy: 0 },
+      { castle_id: 15, castle_name: 'Holy Shadow', realm: 'Greenwood Lake', guild_name: 'Unclaimed', defense: 0, economy: 0 }
+    ];
   }
 
   // SELECT COUNT(*) FROM login WHERE state = 5 or unban_time
