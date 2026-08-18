@@ -24,6 +24,7 @@ import AdminCharactersPage from './pages/admin/AdminCharactersPage';
 import AdminGuildsPage from './pages/admin/AdminGuildsPage';
 import AdminItemDispatchPage from './pages/admin/AdminItemDispatchPage';
 import AdminItemDbPage from './pages/admin/AdminItemDbPage';
+import PublicItemDbPage from './pages/PublicItemDbPage';
 
 function AppContent() {
   const location = useLocation();
@@ -41,8 +42,10 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/download" element={<DownloadsPage />} />
-          <Route path="/downloads" element={<DownloadsPage />} />
           <Route path="/server-info" element={<ServerInfoPage />} />
+          <Route path="/database/items" element={<PublicItemDbPage />} />
+          <Route path="/database" element={<PublicItemDbPage />} />
+          <Route path="/items" element={<PublicItemDbPage />} />
           
           {/* Authenticated Player Dashboard */}
           <Route

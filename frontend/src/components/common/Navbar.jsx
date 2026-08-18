@@ -16,7 +16,8 @@ import {
   Info, 
   Home, 
   ChevronRight,
-  Crown
+  Crown,
+  Database
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -69,6 +70,9 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             <NavLink to="/" end className={navLinkClass}>
               Home
+            </NavLink>
+            <NavLink to="/database/items" className={navLinkClass}>
+              Item Database
             </NavLink>
             <NavLink to="/server-info" className={navLinkClass}>
               Server Info
@@ -160,6 +164,14 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <span className="flex items-center gap-3"><Home className="w-5 h-5 text-ro-gold" /> Home</span>
+              <ChevronRight className="w-4 h-4 text-ro-text-muted" />
+            </Link>
+            <Link
+              to="/database/items"
+              className="flex items-center justify-between px-4 py-3 rounded-lg text-ro-text-primary hover:bg-ro-card"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="flex items-center gap-3"><Database className="w-5 h-5 text-ro-gold" /> Item Database</span>
               <ChevronRight className="w-4 h-4 text-ro-text-muted" />
             </Link>
             <Link

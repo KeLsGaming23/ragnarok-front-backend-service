@@ -452,6 +452,26 @@ async function runTests() {
     failed++;
   }
 
+  // 13. Testing Public Item Encyclopedia & Refine Calculation
+  console.log('\n[13] Testing Public Item Encyclopedia & Refine Support');
+  try {
+    const { queryItemDatabase, resolveItemInfo } = await import('../src/utils/itemDb.js');
+    
+    // Test 1: Public query with category and search
+    const pubRes = queryItemDatabase({ category: 'weapon', query: 'Katana', page: 1, limit: 10 });
+    assert(pubRes.items.length > 0, 'Public items query returned Katana weapons');
+    assert(pubRes.items[0].type === 'weapon', 'Weapon category filter respected');
+
+    // Test 2: Public item deep resolver
+    const katana = resolveItemInfo(1116); // Katana ID
+    assert(katana.name === 'Katana', 'Katana item resolved');
+    assert(typeof katana.slots === 'number', 'Katana slots verified as numeric');
+    assert(katana.attack === 60, 'Katana base attack verified');
+  } catch (err) {
+    console.error('Public item test suite error:', err);
+    failed++;
+  }
+
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   process.exit(failed > 0 ? 1 : 0);
 }

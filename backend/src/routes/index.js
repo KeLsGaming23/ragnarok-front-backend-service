@@ -7,6 +7,7 @@ import accountRoutes from './accountRoutes.js';
 import serverRoutes from './serverRoutes.js';
 import downloadRoutes from './downloadRoutes.js';
 import adminRoutes from './adminRoutes.js';
+import itemRoutes from './itemRoutes.js';
 import { SERVER_CONFIG } from '../config/serverConfig.js';
 import { sendSuccess } from '../utils/responseHandler.js';
 
@@ -24,7 +25,8 @@ router.get('/', (req, res) => {
       account: '/api/account',
       server: '/api/server',
       downloads: '/api/downloads',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      items: '/api/items'
     }
   });
 });
@@ -35,5 +37,6 @@ router.use('/account', accountRoutes);
 router.use('/server', serverRoutes);
 router.use('/downloads', downloadRoutes);
 router.use('/admin', adminRoutes);
+router.use('/items', itemRoutes);
 
 export default router;
