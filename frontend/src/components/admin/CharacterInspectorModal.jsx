@@ -45,7 +45,8 @@ export default function CharacterInspectorModal({ charId, onClose, onActionSucce
     setError(null);
     try {
       const res = await adminService.inspectCharacter(charId);
-      setData(res.data);
+      const inspectorData = res?.character ? res : (res?.data || res);
+      setData(inspectorData);
     } catch (err) {
       setError(err.message || 'Failed to fetch character details');
     } finally {

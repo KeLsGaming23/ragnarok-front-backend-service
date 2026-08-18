@@ -9,7 +9,7 @@ export const adminService = {
    */
   getDashboardStats: async () => {
     const res = await api.get('/api/admin/dashboard/stats');
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -17,7 +17,7 @@ export const adminService = {
    */
   verifyAdmin: async () => {
     const res = await api.get('/api/admin/verify');
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -25,7 +25,7 @@ export const adminService = {
    */
   getOnlinePlayers: async (params = {}) => {
     const res = await api.get('/api/admin/players/online', { params });
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -33,7 +33,7 @@ export const adminService = {
    */
   inspectCharacter: async (charId) => {
     const res = await api.get(`/api/admin/characters/${charId}/inspect`);
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -41,7 +41,7 @@ export const adminService = {
    */
   unstuckCharacter: async (charId) => {
     const res = await api.post(`/api/admin/characters/${charId}/unstuck`);
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -49,7 +49,7 @@ export const adminService = {
    */
   resetCharacterPoints: async (charId, options = {}) => {
     const res = await api.post(`/api/admin/characters/${charId}/reset-points`, options);
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -57,7 +57,7 @@ export const adminService = {
    */
   banAccount: async (accountId, data = {}) => {
     const res = await api.post(`/api/admin/accounts/${accountId}/ban`, data);
-    return res.data;
+    return res?.data ?? res;
   },
 
   /**
@@ -65,6 +65,6 @@ export const adminService = {
    */
   unbanAccount: async (accountId) => {
     const res = await api.post(`/api/admin/accounts/${accountId}/unban`);
-    return res.data;
+    return res?.data ?? res;
   }
 };

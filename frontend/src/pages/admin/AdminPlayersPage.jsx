@@ -44,7 +44,8 @@ export default function AdminPlayersPage() {
         map: mapFilter,
         onlineOnly
       });
-      setPlayers(res.data?.players || []);
+      const playerList = res?.players || res?.data?.players || (Array.isArray(res) ? res : []);
+      setPlayers(playerList);
       setError(null);
     } catch (err) {
       setError(err.message || 'Failed to fetch players');
