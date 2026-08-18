@@ -63,10 +63,10 @@ export default function AdminItemDispatchPage() {
     const initData = async () => {
       try {
         const [charRes, itemRes] = await Promise.all([
-          adminService.getOnlinePlayers({}),
+          adminService.getOnlinePlayers({ onlineOnly: false, limit: 200 }),
           adminService.searchItems('')
         ]);
-        const charList = charRes?.players || charRes?.data?.players || [];
+        const charList = charRes?.players || charRes?.data?.players || (Array.isArray(charRes) ? charRes : []);
         setCharacters(charList);
         if (charList.length > 0 && !selectedCharId) {
           setSelectedCharId(String(charList[0].char_id));
@@ -279,18 +279,39 @@ export default function AdminItemDispatchPage() {
 
             {/* 2. Recipient Selector */}
             <div className="ro-card p-6 rounded-2xl border border-ro-border bg-gradient-to-b from-ro-surface to-ro-card shadow-xl space-y-4">
-              <h3 className="font-cinzel text-sm font-bold text-ro-gold uppercase tracking-wider flex items-center gap-2">
-                <User className="w-4 h-4 text-ro-gold" />
-                <span>2. Recipient Target</span>
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-cinzel text-sm font-bold text-ro-gold uppercase tracking-wider flex items-center gap-2">
+                  <User className="w-4 h-4 text-ro-gold" />
+                  <span>2. Recipient Target</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setLoadingChars(true);
+                    try {
+                      const res = await adminService.getOnlinePlayers({ onlineOnly: false, limit: 200 });
+                      const list = res?.players || res?.data?.players || (Array.isArray(res) ? res : []);
+                      setCharacters(list);
+                    } catch (e) {
+                      console.warn(e);
+                    } finally {
+                      setLoadingChars(false);
+                    }
+                  }}
+                  className="text-[10px] text-ro-gold hover:underline flex items-center gap-1"
+                >
+                  <span>🔄 Refresh Characters</span>
+                </button>
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                {/* Dropdown Selector */}
+                <div className="sm:col-span-2">
                   <label className="font-bold text-ro-text-muted uppercase text-[10px] block mb-1">
-                    Select Target Character
+                    Select Server Character ({characters.length} Available)
                   </label>
                   {loadingChars ? (
-                    <div className="p-2.5 bg-ro-bg rounded-xl text-ro-text-muted">Loading roster...</div>
+                    <div className="p-2.5 bg-ro-bg rounded-xl text-ro-text-muted">Loading character records...</div>
                   ) : (
                     <select
                       value={selectedCharId}
@@ -300,25 +321,40 @@ export default function AdminItemDispatchPage() {
                       <option value="">-- Choose Character --</option>
                       {characters.map((c) => (
                         <option key={c.char_id} value={c.char_id}>
-                          {c.name} (Lv {c.base_level} {c.className || 'Novice'}) - Account #{c.account_id}
+                          {c.online === 1 ? '🟢' : '⚪'} {c.name} (Lv {c.base_level} {c.className || 'Novice'}) - #{c.char_id}
                         </option>
                       ))}
                     </select>
                   )}
                 </div>
 
+                {/* Direct Char ID input fallback */}
                 <div>
                   <label className="font-bold text-ro-text-muted uppercase text-[10px] block mb-1">
-                    Account ID (Auto-linked)
+                    Character ID (char_id)
                   </label>
                   <input
                     type="number"
-                    value={targetAccountId}
-                    onChange={(e) => setTargetAccountId(e.target.value)}
-                    placeholder="Account ID..."
-                    className="w-full px-3 py-2.5 rounded-xl bg-ro-bg border border-ro-border text-xs text-white focus:outline-none focus:border-ro-gold"
+                    value={selectedCharId}
+                    onChange={(e) => handleCharChange(e.target.value)}
+                    placeholder="e.g. 150001"
+                    className="w-full px-3 py-2.5 rounded-xl bg-ro-bg border border-ro-border text-xs text-white focus:outline-none focus:border-ro-gold font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Linked Account ID */}
+              <div>
+                <label className="font-bold text-ro-text-muted uppercase text-[10px] block mb-1">
+                  Target Account ID (Auto-linked for Kafra Storage)
+                </label>
+                <input
+                  type="number"
+                  value={targetAccountId}
+                  onChange={(e) => setTargetAccountId(e.target.value)}
+                  placeholder="Auto-detected or enter Account ID..."
+                  className="w-full px-3 py-2 rounded-xl bg-ro-bg border border-ro-border text-xs text-white focus:outline-none focus:border-ro-gold font-mono"
+                />
               </div>
             </div>
 
