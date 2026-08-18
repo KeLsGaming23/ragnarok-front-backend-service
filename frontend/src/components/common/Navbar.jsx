@@ -15,13 +15,16 @@ import {
   Sparkles, 
   Info, 
   Home, 
-  ChevronRight 
+  ChevronRight,
+  Crown
 } from 'lucide-react';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const isAdmin = parseInt(user?.groupId ?? user?.group_id ?? 0, 10) >= 99;
 
   const handleLogout = async () => {
     await logout();
@@ -77,6 +80,15 @@ export default function Navbar() {
               <NavLink to="/dashboard" className={navLinkClass}>
                 Dashboard
               </NavLink>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/40 text-xs font-bold shadow-sm hover:brightness-125 transition-all ml-2"
+              >
+                <Crown className="w-3.5 h-3.5 text-ro-gold" />
+                <span>Admin Portal</span>
+              </Link>
             )}
           </nav>
 
@@ -174,6 +186,16 @@ export default function Navbar() {
               >
                 <span className="flex items-center gap-3"><User className="w-5 h-5 text-ro-gold" /> Dashboard</span>
                 <ChevronRight className="w-4 h-4 text-ro-text-muted" />
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center justify-between px-4 py-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/30 font-bold"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className="flex items-center gap-3"><Crown className="w-5 h-5 text-ro-gold" /> Admin Portal</span>
+                <ChevronRight className="w-4 h-4 text-amber-400" />
               </Link>
             )}
           </div>

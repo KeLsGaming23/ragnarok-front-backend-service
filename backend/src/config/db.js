@@ -378,15 +378,32 @@ function executeMockQuery(sql, params) {
     return { affectedRows: 1 };
   }
 
-  // SELECT COUNT(*) online FROM char WHERE online = 1
-  if (normalizedSql.includes('count') && normalizedSql.includes('char') && normalizedSql.includes('online = 1')) {
+  // SELECT COUNT(*) FROM char WHERE online = 1
+  if (normalizedSql.includes('count') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char')) && normalizedSql.includes('online = 1')) {
     const count = mockStore.chars.filter(c => c.online === 1).length;
-    return [{ online_count: count }];
+    return [{ count, online_count: count }];
   }
 
-  // Generic count
-  if (normalizedSql.includes('count(*) as count') && normalizedSql.includes('login')) {
+  // SELECT COUNT(*) FROM login WHERE state = 5 or unban_time
+  if (normalizedSql.includes('count') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login')) && (normalizedSql.includes('state = 5') || normalizedSql.includes('unban_time'))) {
+    const count = mockStore.accounts.filter(a => a.state === 5).length;
+    return [{ count }];
+  }
+
+  // SELECT COUNT(*) FROM login
+  if (normalizedSql.includes('count') && (normalizedSql.includes('from `login`') || normalizedSql.includes('from login'))) {
     return [{ count: mockStore.accounts.length }];
+  }
+
+  // SELECT COUNT(*) FROM char
+  if (normalizedSql.includes('count') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char'))) {
+    return [{ count: mockStore.chars.length }];
+  }
+
+  // SELECT COALESCE(SUM(zeny), 0) FROM char
+  if (normalizedSql.includes('sum(zeny)') && (normalizedSql.includes('from `char`') || normalizedSql.includes('from char'))) {
+    const total = mockStore.chars.reduce((acc, c) => acc + (c.zeny || 0), 0);
+    return [{ total_zeny: total }];
   }
 
   return [];

@@ -9,6 +9,7 @@ import { AuthService } from '../src/services/authService.js';
 import { AccountRepository } from '../src/repositories/accountRepository.js';
 import { AccountService } from '../src/services/accountService.js';
 import { ServerStatusService } from '../src/services/serverStatusService.js';
+import { AdminService } from '../src/services/adminService.js';
 import { 
   resolveItemInfo, 
   resolveCardNames, 
@@ -219,6 +220,44 @@ async function runTests() {
 
   } catch (err) {
     console.error('Phase 2 test suite error:', err);
+    failed++;
+  }
+
+  // 8. Test Phase 1 Admin Portal RBAC & Dashboard Statistics
+  console.log('\n[8] Testing Phase 1 Admin Portal RBAC & Dashboard Statistics');
+  try {
+    // Test 1: Admin Permission verification for regular player (groupId: 0)
+    const playerPerms = AdminService.verifyAdminPermissions({ groupId: 0 });
+    assert(playerPerms.isAdmin === false, 'groupId: 0 correctly identified as non-admin');
+    assert(playerPerms.permissions.canManagePlayers === false, 'Player cannot manage players');
+
+    // Test 2: Admin Permission verification for Administrator (groupId: 99)
+    const adminPerms = AdminService.verifyAdminPermissions({ groupId: 99 });
+    assert(adminPerms.isAdmin === true, 'groupId: 99 correctly identified as Administrator');
+    assert(adminPerms.permissions.canManagePlayers === true, 'Admin can manage players');
+    assert(adminPerms.permissions.canDispatchItems === true, 'Admin can dispatch items');
+
+    // Test 3: Dashboard Stats aggregation
+    const adminStats = await AdminService.getDashboardStats();
+    assert(typeof adminStats.kpi.onlinePlayers === 'number', 'KPI onlinePlayers is a number');
+    assert(typeof adminStats.kpi.totalAccounts === 'number', 'KPI totalAccounts is a number');
+    assert(typeof adminStats.kpi.totalCharacters === 'number', 'KPI totalCharacters is a number');
+    assert(typeof adminStats.kpi.bannedAccounts === 'number', 'KPI bannedAccounts is a number');
+    assert(typeof adminStats.kpi.serverUptime === 'string', 'KPI serverUptime is a string');
+    assert(Array.isArray(adminStats.activityTrend), 'activityTrend is an array of data points');
+    assert(Array.isArray(adminStats.recentActions), 'recentActions is an array of audit logs');
+    assert(adminStats.services.loginServer !== undefined, 'Services health contains loginServer');
+
+    // Test 4: Admin Audit Log recording
+    const newLog = AdminService.logAction({
+      adminName: 'AdminTest',
+      actionType: 'TEST_ACTION',
+      target: 'Unit Test',
+      details: 'Verified admin action logging'
+    });
+    assert(newLog.actionType === 'TEST_ACTION', 'Action correctly logged into audit stream');
+  } catch (err) {
+    console.error('Admin test suite error:', err);
     failed++;
   }
 
