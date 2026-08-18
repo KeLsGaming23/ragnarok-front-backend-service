@@ -34,15 +34,17 @@ export class AdminController {
    */
   static async getOnlinePlayers(req, res, next) {
     try {
-      const { search, map, classId, page, limit } = req.query;
+      const { search, map, classId, onlineOnly, page, limit } = req.query;
+      const isOnlineOnly = onlineOnly === undefined ? true : (onlineOnly === 'true' || onlineOnly === true);
       const data = await AdminService.getOnlinePlayers({
         search,
         map,
         classId: classId ? parseInt(classId, 10) : null,
+        onlineOnly: isOnlineOnly,
         page: page ? parseInt(page, 10) : 1,
         limit: limit ? parseInt(limit, 10) : 50
       });
-      sendSuccess(res, 'Online players retrieved successfully', data);
+      sendSuccess(res, 'Players retrieved successfully', data);
     } catch (err) {
       next(err);
     }

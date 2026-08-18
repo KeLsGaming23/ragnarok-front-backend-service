@@ -378,9 +378,13 @@ function executeMockQuery(sql, params) {
     return { affectedRows: 1 };
   }
 
-  // SELECT online characters with join
-  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char` c') || normalizedSql.includes('from char c')) && normalizedSql.includes('c.online = 1')) {
-    return mockStore.chars.filter(c => c.online === 1).map(c => {
+  // SELECT online/all characters with join
+  if (normalizedSql.includes('select') && (normalizedSql.includes('from `char` c') || normalizedSql.includes('from char c')) && (normalizedSql.includes('left join `login`') || normalizedSql.includes('left join login'))) {
+    let list = mockStore.chars;
+    if (normalizedSql.includes('c.online > 0') || normalizedSql.includes('c.online = 1') || normalizedSql.includes('online = 1')) {
+      list = list.filter(c => c.online === 1);
+    }
+    return list.map(c => {
       const acc = mockStore.accounts.find(a => a.account_id === c.account_id) || {};
       return {
         ...c,

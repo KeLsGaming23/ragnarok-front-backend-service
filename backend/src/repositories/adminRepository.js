@@ -45,20 +45,28 @@ export class AdminRepository {
   }
 
   /**
-   * Fetch list of currently online characters with optional search and filters
+   * Fetch list of characters with optional online filter, search, and pagination
    */
-  static async getOnlineCharacters({ search = '', map = '', classId = null, page = 1, limit = 50 } = {}) {
+  static async getOnlineCharacters({ search = '', map = '', classId = null, onlineOnly = true, page = 1, limit = 50 } = {}) {
+    const safeLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 50));
+    const safePage = Math.max(1, parseInt(page, 10) || 1);
+    const safeOffset = (safePage - 1) * safeLimit;
+
     let sql = `
       SELECT 
         c.char_id, c.account_id, c.name, c.class, c.base_level, c.job_level,
         c.zeny, c.hp, c.max_hp, c.sp, c.max_sp,
-        c.last_map, c.last_x, c.last_y, c.guild_id,
+        c.last_map, c.last_x, c.last_y, c.guild_id, c.online,
         l.userid AS account_username, l.last_ip, l.sex
       FROM \`char\` c
       LEFT JOIN \`login\` l ON c.account_id = l.account_id
-      WHERE c.online = 1
+      WHERE 1=1
     `;
     const params = [];
+
+    if (onlineOnly) {
+      sql += ' AND c.online > 0';
+    }
 
     if (search && search.trim() !== '') {
       sql += ' AND (LOWER(c.name) LIKE LOWER(?) OR LOWER(l.userid) LIKE LOWER(?))';
@@ -75,15 +83,13 @@ export class AdminRepository {
       params.push(parseInt(classId, 10));
     }
 
-    sql += ' ORDER BY c.base_level DESC, c.char_id ASC LIMIT ? OFFSET ?';
-    const offset = (Math.max(1, page) - 1) * limit;
-    params.push(limit, offset);
+    sql += ` ORDER BY c.online DESC, c.base_level DESC, c.char_id ASC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
 
     try {
       const rows = await executeQuery(sql, params);
       return rows || [];
     } catch (err) {
-      console.warn('[AdminRepository] Could not fetch online characters:', err.message);
+      console.warn('[AdminRepository] Could not fetch characters:', err.message);
       return [];
     }
   }
