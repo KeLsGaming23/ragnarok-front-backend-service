@@ -1,7 +1,8 @@
 /**
- * Responsive Navigation Bar
+ * Responsive Navigation Bar (Option 3: Clean Split Dock Header)
+ * Features brand on the left, spacious centered navigation, and a unified User Profile dropdown.
  */
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ServerStatusBadge from './ServerStatusBadge';
@@ -16,58 +17,75 @@ import {
   Info, 
   Home, 
   ChevronRight,
+  ChevronDown,
   Crown,
-  Database
+  Database,
+  Gift,
+  LayoutDashboard
 } from 'lucide-react';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
   const isAdmin = parseInt(user?.groupId ?? user?.group_id ?? 0, 10) >= 99;
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    setUserDropdownOpen(false);
     setMobileMenuOpen(false);
+    navigate('/');
   };
 
   const navLinkClass = ({ isActive }) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+    `relative px-3.5 py-2 text-xs lg:text-sm font-semibold tracking-wide whitespace-nowrap transition-all duration-200 ${
       isActive
-        ? 'text-ro-gold bg-ro-gold/10 border-b-2 border-ro-gold font-semibold'
-        : 'text-ro-text-secondary hover:text-ro-gold hover:bg-ro-surface/60'
+        ? 'text-ro-gold font-bold after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:bg-gradient-to-r after:from-amber-400 after:to-ro-gold after:shadow-gold-glow'
+        : 'text-ro-text-secondary hover:text-white hover:bg-ro-surface/50 rounded-lg'
     }`;
 
   return (
-    <header className="sticky top-0 z-50 bg-ro-bg/90 backdrop-blur-md border-b border-ro-border">
+    <header className="sticky top-0 z-50 bg-ro-bg/95 backdrop-blur-xl border-b border-ro-border/80 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-20 gap-4">
           
-          {/* Logo & Brand */}
+          {/* 1. Left Side: Brand Logo */}
           <Link 
             to="/" 
-            className="flex items-center gap-3 group focus:outline-none"
-            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 group focus:outline-none shrink-0"
+            onClick={() => { setMobileMenuOpen(false); setUserDropdownOpen(false); }}
           >
-            <div className="relative flex items-center justify-center w-11 h-11 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 p-0.5 shadow-gold-glow group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full bg-ro-surface rounded-[7px] flex items-center justify-center">
-                <Shield className="w-6 h-6 text-ro-gold group-hover:rotate-6 transition-transform" />
+            <div className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 p-0.5 shadow-gold-glow group-hover:scale-105 transition-transform duration-300">
+              <div className="w-full h-full bg-ro-surface rounded-[9px] flex items-center justify-center">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-ro-gold group-hover:rotate-6 transition-transform" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="font-cinzel text-xl font-extrabold tracking-wider bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent group-hover:from-white group-hover:to-amber-400 transition-colors">
+              <span className="font-cinzel text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent group-hover:from-white group-hover:to-amber-400 transition-colors">
                 KelsGaming RO
               </span>
-              <span className="text-[10px] uppercase tracking-widest text-ro-text-muted font-semibold">
+              <span className="text-[9px] uppercase tracking-widest text-ro-text-muted font-bold -mt-0.5">
                 Private Server
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+          {/* 2. Center: Spacious Clean Navigation Links */}
+          <nav className="hidden md:flex items-center justify-center space-x-1 lg:space-x-4 flex-1">
             <NavLink to="/" end className={navLinkClass}>
               Home
             </NavLink>
@@ -78,75 +96,143 @@ export default function Navbar() {
               Server Info
             </NavLink>
             <NavLink to="/download" className={navLinkClass}>
-              Download Client
+              Downloads
             </NavLink>
-            {isAuthenticated && (
-              <NavLink to="/dashboard" className={navLinkClass}>
-                Dashboard
-              </NavLink>
-            )}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/40 text-xs font-bold shadow-sm hover:brightness-125 transition-all ml-2"
-              >
-                <Crown className="w-3.5 h-3.5 text-ro-gold" />
-                <span>Admin Portal</span>
-              </Link>
-            )}
           </nav>
 
-          {/* Right Side: Status Badge & Auth CTAs */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* 3. Right Side: Compact Status Badge & User Profile Dropdown */}
+          <div className="hidden md:flex items-center gap-3 shrink-0">
             <ServerStatusBadge />
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-ro-card hover:bg-ro-card-hover border border-ro-border hover:border-ro-gold/40 text-sm font-medium text-ro-text-primary transition-colors"
-                >
-                  <User className="w-4 h-4 text-ro-gold" />
-                  <span className="max-w-[120px] truncate">{user?.username}</span>
-                </Link>
+              /* User Profile Dropdown */
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={handleLogout}
-                  className="p-2 rounded-lg bg-ro-card hover:bg-red-950/40 border border-ro-border hover:border-red-500/40 text-ro-text-muted hover:text-red-400 transition-colors"
-                  title="Logout"
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all ${
+                    userDropdownOpen
+                      ? 'bg-ro-surface border-ro-gold shadow-gold-glow text-white'
+                      : 'bg-ro-card hover:bg-ro-surface border-ro-border hover:border-ro-gold/50 text-ro-text-primary'
+                  }`}
                 >
-                  <LogOut className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-ro-gold shadow-inner">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-xs font-bold block leading-tight max-w-[100px] truncate">
+                      {user?.username}
+                    </span>
+                    {isAdmin && (
+                      <span className="text-[9px] font-black text-ro-gold uppercase leading-none block">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                  <ChevronDown className={`w-3.5 h-3.5 text-ro-text-muted transition-transform duration-200 ${userDropdownOpen ? 'rotate-180 text-ro-gold' : ''}`} />
                 </button>
+
+                {/* Floating Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-ro-surface border-2 border-ro-gold/40 shadow-2xl p-2 z-50 animate-in fade-in zoom-in duration-150 space-y-1">
+                    
+                    {/* User Header */}
+                    <div className="p-2.5 rounded-xl bg-ro-bg/80 border border-ro-border/60 mb-1">
+                      <span className="text-xs font-bold text-white block truncate">
+                        {user?.username}
+                      </span>
+                      <span className="text-[10px] text-ro-text-muted font-mono block truncate">
+                        Account #{user?.id || user?.accountId || user?.account_id || '0'}
+                      </span>
+                      <div className="mt-1.5 flex items-center gap-1">
+                        {isAdmin ? (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-black bg-amber-500 text-black">
+                            👑 GM Level 99
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                            🗡️ Player
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Menu Links */}
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-ro-text-secondary hover:text-white hover:bg-ro-card transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-ro-gold" />
+                      <span>Player Dashboard</span>
+                    </Link>
+
+                    {isAdmin && (
+                      <>
+                        <Link
+                          to="/admin"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:text-white hover:bg-amber-950/40 border border-transparent hover:border-amber-500/30 transition-colors"
+                        >
+                          <Crown className="w-4 h-4 text-ro-gold" />
+                          <span>Admin Portal</span>
+                        </Link>
+
+                        <Link
+                          to="/admin/dispatch"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-ro-text-secondary hover:text-white hover:bg-ro-card transition-colors"
+                        >
+                          <Gift className="w-4 h-4 text-amber-400" />
+                          <span>Item Dispatcher</span>
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="my-1 border-t border-ro-border/60"></div>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-300 hover:text-white hover:bg-red-950/40 transition-colors text-left"
+                    >
+                      <LogOut className="w-4 h-4 text-red-400" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="flex items-center gap-2.5">
+              /* Guest Actions */
+              <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-ro-text-secondary hover:text-white hover:bg-ro-surface transition-colors"
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-ro-text-secondary hover:text-white hover:bg-ro-surface transition-colors"
                 >
-                  Login
+                  Log In
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-gold !py-2 !px-4 text-sm font-bold flex items-center gap-1.5"
+                  className="btn-gold !py-2 !px-4 text-xs font-cinzel font-bold shadow-gold-glow flex items-center gap-1.5"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-3.5 h-3.5" />
                   <span>Register</span>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Toggle Button */}
+          {/* 4. Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              type="button"
-              className="p-2 rounded-lg bg-ro-card border border-ro-border text-ro-text-secondary hover:text-white"
-              aria-label="Toggle navigation menu"
+              className="p-2 rounded-xl bg-ro-surface hover:bg-ro-card border border-ro-border text-ro-text-muted hover:text-white transition-colors"
+              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
+
         </div>
       </div>
 
@@ -160,53 +246,55 @@ export default function Navbar() {
           <div className="grid gap-1">
             <Link
               to="/"
-              className="flex items-center justify-between px-4 py-3 rounded-lg text-ro-text-primary hover:bg-ro-card"
+              className="flex items-center justify-between px-4 py-3 rounded-xl text-ro-text-primary hover:bg-ro-card text-xs font-bold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span className="flex items-center gap-3"><Home className="w-5 h-5 text-ro-gold" /> Home</span>
+              <span className="flex items-center gap-3"><Home className="w-4 h-4 text-ro-gold" /> Home</span>
               <ChevronRight className="w-4 h-4 text-ro-text-muted" />
             </Link>
             <Link
               to="/database/items"
-              className="flex items-center justify-between px-4 py-3 rounded-lg text-ro-text-primary hover:bg-ro-card"
+              className="flex items-center justify-between px-4 py-3 rounded-xl text-ro-text-primary hover:bg-ro-card text-xs font-bold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span className="flex items-center gap-3"><Database className="w-5 h-5 text-ro-gold" /> Item Database</span>
+              <span className="flex items-center gap-3"><Database className="w-4 h-4 text-ro-gold" /> Item Database</span>
               <ChevronRight className="w-4 h-4 text-ro-text-muted" />
             </Link>
             <Link
               to="/server-info"
-              className="flex items-center justify-between px-4 py-3 rounded-lg text-ro-text-primary hover:bg-ro-card"
+              className="flex items-center justify-between px-4 py-3 rounded-xl text-ro-text-primary hover:bg-ro-card text-xs font-bold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span className="flex items-center gap-3"><Info className="w-5 h-5 text-ro-gold" /> Server Info</span>
+              <span className="flex items-center gap-3"><Info className="w-4 h-4 text-ro-gold" /> Server Info</span>
               <ChevronRight className="w-4 h-4 text-ro-text-muted" />
             </Link>
             <Link
               to="/download"
-              className="flex items-center justify-between px-4 py-3 rounded-lg text-ro-text-primary hover:bg-ro-card"
+              className="flex items-center justify-between px-4 py-3 rounded-xl text-ro-text-primary hover:bg-ro-card text-xs font-bold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span className="flex items-center gap-3"><Download className="w-5 h-5 text-ro-gold" /> Download Client</span>
+              <span className="flex items-center gap-3"><Download className="w-4 h-4 text-ro-gold" /> Downloads</span>
               <ChevronRight className="w-4 h-4 text-ro-text-muted" />
             </Link>
+
             {isAuthenticated && (
               <Link
                 to="/dashboard"
-                className="flex items-center justify-between px-4 py-3 rounded-lg text-ro-text-primary hover:bg-ro-card"
+                className="flex items-center justify-between px-4 py-3 rounded-xl text-ro-text-primary hover:bg-ro-card text-xs font-bold"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="flex items-center gap-3"><User className="w-5 h-5 text-ro-gold" /> Dashboard</span>
+                <span className="flex items-center gap-3"><User className="w-4 h-4 text-ro-gold" /> Player Dashboard</span>
                 <ChevronRight className="w-4 h-4 text-ro-text-muted" />
               </Link>
             )}
+
             {isAdmin && (
               <Link
                 to="/admin"
-                className="flex items-center justify-between px-4 py-3 rounded-lg bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/30 font-bold"
+                className="flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/30 text-xs font-bold"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="flex items-center gap-3"><Crown className="w-5 h-5 text-ro-gold" /> Admin Portal</span>
+                <span className="flex items-center gap-3"><Crown className="w-4 h-4 text-ro-gold" /> Admin Control Portal</span>
                 <ChevronRight className="w-4 h-4 text-amber-400" />
               </Link>
             )}
@@ -216,23 +304,23 @@ export default function Navbar() {
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300 font-medium"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 font-bold text-xs"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Logout ({user?.username})</span>
+                <span>Sign Out ({user?.username})</span>
               </button>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 <Link
                   to="/login"
-                  className="btn-secondary !py-2.5 text-center text-sm"
+                  className="btn-secondary !py-2.5 text-center text-xs font-bold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Login
+                  Log In
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-gold !py-2.5 text-center text-sm"
+                  className="btn-gold !py-2.5 text-center text-xs font-bold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Register
