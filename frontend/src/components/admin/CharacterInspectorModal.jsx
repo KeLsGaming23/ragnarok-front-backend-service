@@ -27,6 +27,7 @@ import {
   Compass
 } from 'lucide-react';
 import { formatZeny } from '../../utils/formatters';
+import ItemSprite from '../common/ItemSprite';
 
 export default function CharacterInspectorModal({ charId, onClose, onActionSuccess }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -376,9 +377,7 @@ export default function CharacterInspectorModal({ charId, onClose, onActionSucce
                               : 'bg-ro-surface/80 border-ro-border'
                           }`}
                         >
-                          <div className="text-2xl p-2 rounded-lg bg-ro-bg border border-ro-border/60 shrink-0">
-                            {item.icon || '🎒'}
-                          </div>
+                          <ItemSprite itemId={item.nameid} itemType={item.type} size="md" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-1">
                               <span className="text-xs font-bold text-white truncate block">
@@ -439,9 +438,7 @@ export default function CharacterInspectorModal({ charId, onClose, onActionSucce
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {storage.map((item) => (
                         <div key={item.id} className="p-3.5 rounded-xl bg-ro-surface/80 border border-ro-border flex items-start gap-3">
-                          <div className="text-2xl p-2 rounded-lg bg-ro-bg border border-ro-border/60 shrink-0">
-                            {item.icon || '📦'}
-                          </div>
+                          <ItemSprite itemId={item.nameid} itemType={item.type} size="md" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-white truncate block">

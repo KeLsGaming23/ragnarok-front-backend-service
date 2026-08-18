@@ -23,6 +23,7 @@ import {
   Info
 } from 'lucide-react';
 import { formatZeny } from '../../utils/formatters';
+import ItemSprite from '../../components/common/ItemSprite';
 
 export default function AdminItemDispatchPage() {
   // Characters for autocomplete
@@ -384,16 +385,24 @@ export default function AdminItemDispatchPage() {
 
                   {/* Autocomplete Dropdown */}
                   {searchResults.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-30 mt-1 rounded-xl bg-ro-surface border-2 border-ro-gold shadow-2xl max-h-48 overflow-y-auto divide-y divide-ro-border/60">
+                    <div className="absolute top-full left-0 right-0 z-30 mt-1 rounded-xl bg-ro-surface border-2 border-ro-gold shadow-2xl max-h-56 overflow-y-auto divide-y divide-ro-border/60">
                       {searchResults.map((it) => (
                         <button
                           key={it.itemId}
                           type="button"
                           onClick={() => handleSelectItem(it)}
-                          className="w-full px-4 py-2 text-left hover:bg-ro-bg flex items-center justify-between text-xs"
+                          className="w-full px-3 py-2 text-left hover:bg-ro-bg flex items-center justify-between text-xs transition-colors group"
                         >
-                          <span className="font-bold text-white">{it.name}</span>
-                          <span className="text-[10px] text-ro-gold font-mono">#{it.itemId} ({it.type})</span>
+                          <div className="flex items-center gap-2.5">
+                            <ItemSprite itemId={it.itemId} itemType={it.type} size="sm" />
+                            <div>
+                              <span className="font-bold text-white group-hover:text-amber-300 block">{it.name}</span>
+                              <span className="text-[10px] text-ro-text-muted font-mono">ID: #{it.itemId}</span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-ro-gold font-bold uppercase bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+                            {it.type}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -596,9 +605,15 @@ export default function AdminItemDispatchPage() {
               </div>
 
               {/* Item Card Preview */}
-              <div className="p-4 rounded-xl bg-gradient-to-br from-amber-950/30 to-ro-bg border border-amber-500/40 space-y-2">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-amber-950/30 to-ro-bg border border-amber-500/40 space-y-3">
                 <span className="text-[10px] font-extrabold uppercase text-ro-gold block">Item Contents</span>
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <ItemSprite
+                    itemId={customItemId || selectedItem?.itemId}
+                    itemType={selectedItem?.type}
+                    size="lg"
+                    className="border-2 border-ro-gold/40 shadow-md bg-ro-bg"
+                  />
                   <div>
                     <span className="font-cinzel font-bold text-white text-sm block">
                       {refineLevel > 0 ? `+${refineLevel} ` : ''}
@@ -612,13 +627,16 @@ export default function AdminItemDispatchPage() {
 
                 {/* Cards attached */}
                 {[card0, card1, card2, card3].some(Boolean) && (
-                  <div className="pt-2 border-t border-ro-border/60 text-[10px] space-y-0.5">
+                  <div className="pt-2 border-t border-ro-border/60 text-[10px] space-y-1.5">
                     <span className="text-ro-text-muted uppercase font-bold block">Attached Cards:</span>
-                    {[card0, card1, card2, card3].map((c, i) => c && (
-                      <span key={i} className="inline-block mr-1.5 px-2 py-0.5 rounded bg-ro-surface text-amber-300 border border-ro-border font-mono">
-                        Slot {i+1}: Card #{c}
-                      </span>
-                    ))}
+                    <div className="flex flex-wrap gap-1.5">
+                      {[card0, card1, card2, card3].map((c, i) => c && (
+                        <div key={i} className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-ro-surface text-amber-300 border border-ro-border font-mono text-[10px]">
+                          <ItemSprite itemId={c} itemType="card" size="sm" />
+                          <span>Slot {i+1}: Card #{c}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

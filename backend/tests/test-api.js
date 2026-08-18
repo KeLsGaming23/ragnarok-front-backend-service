@@ -140,11 +140,11 @@ async function runTests() {
   const potion = resolveItemInfo(501);
   assert(potion.name === 'Red Potion' && potion.type === 'usable', 'Item 501 resolves to Red Potion (usable)');
 
-  const dragonSlayer = resolveItemInfo(1161);
-  assert(dragonSlayer.name === 'Dragon Slayer' && dragonSlayer.type === 'weapon', 'Item 1161 resolves to Dragon Slayer (weapon)');
+  const balmung = resolveItemInfo(1161);
+  assert(balmung.name === 'Balmung' && balmung.type === 'weapon', 'Item 1161 resolves to Balmung (weapon)');
 
-  const cards = resolveCardNames(4006, 4007, 0, 0);
-  assert(cards.length === 2 && cards[0].name === 'Hydra Card', 'Cards resolve Hydra and Skeleton Worker');
+  const cards = resolveCardNames(4006, 4074, 0, 0);
+  assert(cards.length === 2 && cards[0].name === 'Lunatic Card', 'Cards resolve Lunatic and Bigfoot');
 
   const formattedTitle = formatItemTitle({
     nameid: 1104,
@@ -154,7 +154,7 @@ async function runTests() {
     card2: 0,
     card3: 0
   });
-  assert(formattedTitle === '+8 Blade [4] (Hydra, Hydra)', 'Format item title with refine and slotted cards');
+  assert(formattedTitle === '+8 Falchion [3] (Lunatic, Lunatic)', 'Format item title with refine and slotted cards');
 
   const equipSlot = getEquipSlotName(2);
   assert(equipSlot === 'Right Hand (Weapon)', 'Equip bitmask 2 resolves to Right Hand (Weapon)');
