@@ -528,10 +528,116 @@ export class AdminRepository {
       return [
         { castle_id: 0, castle_name: 'Neuschwanstein (Prontera)', realm: 'Valkyrie Realms', guild_name: 'KelsGaming Vanguard', defense: 100, economy: 100 },
         { castle_id: 1, castle_name: 'Hohenschwangau (Prontera)', realm: 'Valkyrie Realms', guild_name: 'Unclaimed', defense: 0, economy: 0 },
-        { castle_id: 5, castle_name: 'Repherion (Geffen)', realm: 'Britoniah', guild_name: 'Unclaimed', defense: 0, economy: 0 },
         { castle_id: 10, castle_name: 'Sirius (Aldebaran)', realm: 'Luina', guild_name: 'Unclaimed', defense: 0, economy: 0 },
         { castle_id: 15, castle_name: 'Holy Shadow (Payon)', realm: 'Greenwood Lake', guild_name: 'Unclaimed', defense: 0, economy: 0 }
       ];
     }
+  }
+
+  /* ========================================================================= */
+  /* PHASE 4: WEB ITEM & MAIL / RODEX DISPATCHER                               */
+  /* ========================================================================= */
+
+  /**
+   * Dispatch item directly to character's backpack inventory
+   */
+  static async dispatchItemToBackpack({ charId, nameid, amount = 1, refine = 0, card0 = 0, card1 = 0, card2 = 0, card3 = 0 }) {
+    const parsedCharId = parseInt(charId, 10);
+    const parsedNameId = parseInt(nameid, 10);
+    const parsedAmount = Math.max(1, parseInt(amount, 10) || 1);
+    const parsedRefine = Math.max(0, Math.min(10, parseInt(refine, 10) || 0));
+
+    const sql = `
+      INSERT INTO \`inventory\` 
+        (char_id, nameid, amount, equip, identify, refine, attribute, card0, card1, card2, card3, expire_time, unique_id, bound)
+      VALUES 
+        (?, ?, ?, 0, 1, ?, 0, ?, ?, ?, ?, 0, 0, 0)
+    `;
+    const params = [
+      parsedCharId, parsedNameId, parsedAmount, parsedRefine,
+      parseInt(card0, 10) || 0, parseInt(card1, 10) || 0,
+      parseInt(card2, 10) || 0, parseInt(card3, 10) || 0
+    ];
+
+    const result = await executeQuery(sql, params);
+    return result && (result.affectedRows > 0 || result.insertId > 0);
+  }
+
+  /**
+   * Dispatch item to Kafra storage
+   */
+  static async dispatchItemToStorage({ accountId, nameid, amount = 1, refine = 0, card0 = 0, card1 = 0, card2 = 0, card3 = 0 }) {
+    const parsedAccountId = parseInt(accountId, 10);
+    const parsedNameId = parseInt(nameid, 10);
+    const parsedAmount = Math.max(1, parseInt(amount, 10) || 1);
+    const parsedRefine = Math.max(0, Math.min(10, parseInt(refine, 10) || 0));
+
+    const sql = `
+      INSERT INTO \`storage\` 
+        (account_id, nameid, amount, equip, identify, refine, attribute, card0, card1, card2, card3, expire_time, unique_id, bound)
+      VALUES 
+        (?, ?, ?, 0, 1, ?, 0, ?, ?, ?, ?, 0, 0, 0)
+    `;
+    const params = [
+      parsedAccountId, parsedNameId, parsedAmount, parsedRefine,
+      parseInt(card0, 10) || 0, parseInt(card1, 10) || 0,
+      parseInt(card2, 10) || 0, parseInt(card3, 10) || 0
+    ];
+
+    const result = await executeQuery(sql, params);
+    return result && (result.affectedRows > 0 || result.insertId > 0);
+  }
+
+  /**
+   * Dispatch in-game mail / RodEx message with attached item and/or Zeny
+   */
+  static async dispatchInGameMail({ senderName = 'Server Administrator', recipientCharId, title, body, zeny = 0, nameid = 0, amount = 0, refine = 0, card0 = 0, card1 = 0, card2 = 0, card3 = 0 }) {
+    const parsedRecipient = parseInt(recipientCharId, 10);
+    const parsedZeny = Math.max(0, parseInt(zeny, 10) || 0);
+    const parsedNameId = parseInt(nameid, 10) || 0;
+    const parsedAmount = Math.max(0, parseInt(amount, 10) || 0);
+    const parsedRefine = Math.max(0, Math.min(10, parseInt(refine, 10) || 0));
+
+    const mailSql = `
+      INSERT INTO \`mail\`
+        (send_name, send_id, dest_name, dest_id, title, message, time, status, zeny, type)
+      VALUES
+        (?, 0, (SELECT name FROM \`char\` WHERE char_id = ? LIMIT 1), ?, ?, ?, UNIX_TIMESTAMP(), 0, ?, 'M')
+    `;
+    const mailParams = [senderName, parsedRecipient, parsedRecipient, title || 'System Gift', body || 'Special delivery from administration.', parsedZeny];
+    const mailResult = await executeQuery(mailSql, mailParams);
+    const mailId = mailResult?.insertId || Date.now();
+
+    if (parsedNameId > 0 && parsedAmount > 0) {
+      const attachSql = `
+        INSERT INTO \`mail_attachments\`
+          (id, index_id, nameid, amount, refine, card0, card1, card2, card3)
+        VALUES
+          (?, 0, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      const attachParams = [
+        mailId, parsedNameId, parsedAmount, parsedRefine,
+        parseInt(card0, 10) || 0, parseInt(card1, 10) || 0,
+        parseInt(card2, 10) || 0, parseInt(card3, 10) || 0
+      ];
+      await executeQuery(attachSql, attachParams).catch(() => {});
+    }
+
+    return {
+      success: true,
+      mailId
+    };
+  }
+
+  /**
+   * Dispatch Zeny directly to a character
+   */
+  static async dispatchZeny({ charId, amount = 0 }) {
+    const parsedCharId = parseInt(charId, 10);
+    const parsedAmount = parseInt(amount, 10) || 0;
+
+    const sql = 'UPDATE `char` SET zeny = GREATEST(0, LEAST(2000000000, zeny + ?)) WHERE char_id = ?';
+    const result = await executeQuery(sql, [parsedAmount, parsedCharId]);
+    return result && result.affectedRows > 0;
   }
 }

@@ -1,10 +1,8 @@
-/**
- * Admin Service - Aggregates KPI statistics, deep character inspection, accounts, guilds, and audit-logged moderation actions
- */
 import { AdminRepository } from '../repositories/adminRepository.js';
 import { ServerStatusService } from './serverStatusService.js';
 import { SERVER_CONFIG } from '../config/serverConfig.js';
 import { getJobInfo } from '../utils/classNames.js';
+import { searchKnownItems, getKnownCards, resolveItemInfo, formatItemTitle } from '../utils/itemDb.js';
 
 // In-memory admin action audit log buffer
 const adminAuditLogs = [
@@ -426,6 +424,150 @@ export class AdminService {
       count: castles.length,
       castles
     };
+  }
+
+  /* ========================================================================= */
+  /* PHASE 4: WEB ITEM & MAIL / RODEX DISPATCHER                               */
+  /* ========================================================================= */
+
+  /**
+   * Search known items database
+   */
+  static searchItems(query = '') {
+    const items = searchKnownItems(query);
+    const cards = getKnownCards();
+    return {
+      items,
+      cards
+    };
+  }
+
+  /**
+   * Dispatch item, zeny, or in-game mail
+   */
+  static async dispatchItemOrMail({
+    deliveryMethod = 'mail', // 'mail' | 'inventory' | 'storage'
+    charId,
+    accountId,
+    nameid,
+    amount = 1,
+    refine = 0,
+    card0 = 0,
+    card1 = 0,
+    card2 = 0,
+    card3 = 0,
+    zeny = 0,
+    mailTitle = 'Server Gift',
+    mailBody = 'Special delivery from administration.'
+  } = {}, adminUser) {
+    const itemInfo = nameid ? resolveItemInfo(nameid) : null;
+    let targetName = `Target #${charId || accountId}`;
+
+    if (charId) {
+      const charData = await AdminRepository.getCharacterDeepDetails(charId);
+      if (charData) {
+        targetName = `${charData.character.name} (Char #${charId})`;
+        if (!accountId) {
+          accountId = charData.character.account_id;
+        }
+      }
+    }
+
+    if (deliveryMethod === 'inventory') {
+      if (!charId) {
+        const err = new Error('Character ID is required for direct backpack delivery');
+        err.statusCode = 400;
+        throw err;
+      }
+      await AdminRepository.dispatchItemToBackpack({
+        charId,
+        nameid,
+        amount,
+        refine,
+        card0,
+        card1,
+        card2,
+        card3
+      });
+
+      if (zeny > 0) {
+        await AdminRepository.dispatchZeny({ charId, amount: zeny });
+      }
+
+      this.logAction({
+        adminName: adminUser?.username || 'Admin',
+        actionType: 'DISPATCH_BACKPACK',
+        target: targetName,
+        details: `Dispatched ${amount}x ${itemInfo?.name || `Item #${nameid}`} (+${refine}) and ${zeny.toLocaleString()} Zeny to backpack.`
+      });
+
+      return {
+        success: true,
+        message: `Successfully delivered ${amount}x ${itemInfo?.name || `Item #${nameid}`} to ${targetName}'s backpack.`
+      };
+    } else if (deliveryMethod === 'storage') {
+      if (!accountId) {
+        const err = new Error('Account ID is required for Kafra storage delivery');
+        err.statusCode = 400;
+        throw err;
+      }
+      await AdminRepository.dispatchItemToStorage({
+        accountId,
+        nameid,
+        amount,
+        refine,
+        card0,
+        card1,
+        card2,
+        card3
+      });
+
+      this.logAction({
+        adminName: adminUser?.username || 'Admin',
+        actionType: 'DISPATCH_STORAGE',
+        target: `Account #${accountId}`,
+        details: `Dispatched ${amount}x ${itemInfo?.name || `Item #${nameid}`} (+${refine}) to Kafra storage.`
+      });
+
+      return {
+        success: true,
+        message: `Successfully stored ${amount}x ${itemInfo?.name || `Item #${nameid}`} into Account #${accountId}'s Kafra warehouse.`
+      };
+    } else {
+      // Default: In-Game Mail (RodEx delivery)
+      if (!charId) {
+        const err = new Error('Recipient Character is required for in-game mail delivery');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      await AdminRepository.dispatchInGameMail({
+        senderName: adminUser?.username || 'Server Administrator',
+        recipientCharId: charId,
+        title: mailTitle,
+        body: mailBody,
+        zeny,
+        nameid,
+        amount,
+        refine,
+        card0,
+        card1,
+        card2,
+        card3
+      });
+
+      this.logAction({
+        adminName: adminUser?.username || 'Admin',
+        actionType: 'DISPATCH_MAIL',
+        target: targetName,
+        details: `Sent in-game mail "${mailTitle}" with ${amount > 0 ? `${amount}x ${itemInfo?.name}` : ''} ${zeny > 0 ? `${zeny} Zeny` : ''} attached.`
+      });
+
+      return {
+        success: true,
+        message: `In-game mail successfully delivered to ${targetName}'s RodEx mailbox!`
+      };
+    }
   }
 
   /**

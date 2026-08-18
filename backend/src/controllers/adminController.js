@@ -241,13 +241,30 @@ export class AdminController {
     }
   }
 
+  /* ========================================================================= */
+  /* PHASE 4: WEB ITEM & MAIL / RODEX DISPATCHER                               */
+  /* ========================================================================= */
+
   /**
-   * GET /api/admin/castles
+   * GET /api/admin/items/search
    */
-  static async getCastles(req, res, next) {
+  static async searchItems(req, res, next) {
     try {
-      const data = await AdminService.getCastles();
-      sendSuccess(res, 'Castle ownership retrieved successfully', data);
+      const { q } = req.query;
+      const data = AdminService.searchItems(q);
+      sendSuccess(res, 'Items retrieved successfully', data);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/admin/dispatch/item
+   */
+  static async dispatchItem(req, res, next) {
+    try {
+      const result = await AdminService.dispatchItemOrMail(req.body, req.user);
+      sendSuccess(res, result.message, result);
     } catch (err) {
       next(err);
     }

@@ -252,6 +252,46 @@ export function resolveCardNames(card0, card1, card2, card3) {
 }
 
 /**
+ * Search known items by query string or ID
+ */
+export function searchKnownItems(query = '', limit = 25) {
+  const q = String(query).trim().toLowerCase();
+  const results = [];
+  
+  for (const [idStr, item] of Object.entries(KNOWN_ITEMS)) {
+    const id = Number(idStr);
+    if (!q || idStr.includes(q) || item.name.toLowerCase().includes(q)) {
+      results.push({
+        itemId: id,
+        name: item.name,
+        type: item.type,
+        slots: item.slots || 0,
+        icon: item.icon || null
+      });
+    }
+    if (results.length >= limit) break;
+  }
+  return results;
+}
+
+/**
+ * Get all available cards for slotting
+ */
+export function getKnownCards() {
+  const cards = [];
+  for (const [idStr, item] of Object.entries(KNOWN_ITEMS)) {
+    if (item.type === 'card') {
+      cards.push({
+        cardId: Number(idStr),
+        name: item.name,
+        prefix: item.prefix || null
+      });
+    }
+  }
+  return cards;
+}
+
+/**
  * Format a rich item title including refine rate, slots, and attached cards
  */
 export function formatItemTitle(item) {
@@ -276,3 +316,5 @@ export function formatItemTitle(item) {
   
   return title;
 }
+
+

@@ -44,4 +44,8 @@ router.post('/characters/:charId/restore', AdminController.restoreCharacter);
 router.get('/guilds', AdminController.getGuilds);
 router.get('/castles', AdminController.getCastles);
 
+// Phase 4: Web Item & Mail / RodEx Dispatcher
+router.get('/items/search', AdminController.searchItems);
+router.post('/dispatch/item', AdminController.dispatchItem);
+
 export default router;

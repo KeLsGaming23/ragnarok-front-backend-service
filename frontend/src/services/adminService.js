@@ -150,5 +150,25 @@ export const adminService = {
   getCastles: async () => {
     const res = await api.get('/api/admin/castles');
     return res?.data ?? res;
+  },
+
+  /* ========================================================================= */
+  /* PHASE 4: WEB ITEM & MAIL / RODEX DISPATCHER                               */
+  /* ========================================================================= */
+
+  /**
+   * Search known items and cards database
+   */
+  searchItems: async (query = '') => {
+    const res = await api.get('/api/admin/items/search', { params: { q: query } });
+    return res?.data ?? res;
+  },
+
+  /**
+   * Dispatch item, zeny, or in-game mail to target character/account
+   */
+  dispatchItem: async (payload = {}) => {
+    const res = await api.post('/api/admin/dispatch/item', payload);
+    return res?.data ?? res;
   }
 };

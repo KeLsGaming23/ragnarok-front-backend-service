@@ -353,6 +353,56 @@ async function runTests() {
     failed++;
   }
 
+  // 11. Test Phase 4 Web Item & Mail / RodEx Dispatcher
+  console.log('\n[11] Testing Phase 4 Web Item & Mail / RodEx Dispatcher');
+  try {
+    // Test 1: Search Items
+    const searchRes = AdminService.searchItems('potion');
+    assert(Array.isArray(searchRes.items), 'Item search returns array');
+    assert(searchRes.items.length > 0, 'Found potions in item DB');
+    assert(Array.isArray(searchRes.cards), 'Cards list returns array');
+    assert(searchRes.cards.length > 0, 'Found cards for slotting');
+
+    // Test 2: Direct Backpack Delivery
+    const backpackRes = await AdminService.dispatchItemOrMail({
+      deliveryMethod: 'inventory',
+      charId: 150001,
+      nameid: 1161, // Dragon Slayer
+      amount: 1,
+      refine: 10,
+      card0: 4006, // Hydra Card
+      card1: 4074, // Minorous Card
+      zeny: 500000
+    }, { username: 'AdminKels' });
+    assert(backpackRes.success === true, 'Successfully dispatched weapon with refine and cards to backpack');
+
+    // Test 3: Kafra Storage Delivery
+    const storageRes = await AdminService.dispatchItemOrMail({
+      deliveryMethod: 'storage',
+      accountId: 2000001,
+      nameid: 607, // Yggdrasil Berry
+      amount: 50
+    }, { username: 'AdminKels' });
+    assert(storageRes.success === true, 'Successfully dispatched consumables to Kafra storage');
+
+    // Test 4: In-Game Mail (RodEx) Delivery
+    const mailRes = await AdminService.dispatchItemOrMail({
+      deliveryMethod: 'mail',
+      charId: 150001,
+      nameid: 2357, // Valkyrian Armor
+      amount: 1,
+      refine: 7,
+      card0: 4006,
+      zeny: 1000000,
+      mailTitle: 'Phase 4 Admin Gift',
+      mailBody: 'Enjoy your upgraded gear in Midgard!'
+    }, { username: 'AdminKels' });
+    assert(mailRes.success === true, 'Successfully dispatched RodEx in-game mail with attached gear & Zeny');
+  } catch (err) {
+    console.error('Phase 4 test suite error:', err);
+    failed++;
+  }
+
   console.log(`\n--- Verification Completed: ${passed} Passed, ${failed} Failed ---\n`);
   process.exit(failed > 0 ? 1 : 0);
 }

@@ -367,6 +367,30 @@ function executeMockQuery(sql, params) {
     return { affectedRows: 0 };
   }
 
+  // INSERT INTO inventory (Dispatch item to backpack)
+  if (normalizedSql.includes('insert into inventory') || normalizedSql.includes('insert into `inventory`')) {
+    const newId = (mockStore.inventory.length > 0)
+      ? Math.max(...mockStore.inventory.map(i => i.id)) + 1
+      : 7001;
+    mockStore.inventory.push({
+      id: newId,
+      char_id: params[0],
+      nameid: params[1],
+      amount: params[2],
+      refine: params[3],
+      card0: params[4],
+      card1: params[5],
+      card2: params[6],
+      card3: params[7]
+    });
+    return { insertId: newId, affectedRows: 1 };
+  }
+
+  // INSERT INTO storage (Dispatch item to storage)
+  if (normalizedSql.includes('insert into storage') || normalizedSql.includes('insert into `storage`')) {
+    return { insertId: 8999, affectedRows: 1 };
+  }
+
   // INSERT INTO mail
   if (normalizedSql.includes('insert into mail') || normalizedSql.includes('insert into `mail`')) {
     const newMailId = mockStore.mail.length + 1;

@@ -22,6 +22,7 @@ import AdminPlayersPage from './pages/admin/AdminPlayersPage';
 import AdminAccountsPage from './pages/admin/AdminAccountsPage';
 import AdminCharactersPage from './pages/admin/AdminCharactersPage';
 import AdminGuildsPage from './pages/admin/AdminGuildsPage';
+import AdminItemDispatchPage from './pages/admin/AdminItemDispatchPage';
 
 function AppContent() {
   const location = useLocation();
@@ -90,6 +91,22 @@ function AppContent() {
             element={
               <AdminRoute>
                 <AdminGuildsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/dispatch"
+            element={
+              <AdminRoute>
+                <AdminItemDispatchPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/item-dispatch"
+            element={
+              <AdminRoute>
+                <AdminItemDispatchPage />
               </AdminRoute>
             }
           />
